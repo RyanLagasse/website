@@ -154,6 +154,60 @@
             border-color: var(--accent);
         }
 
+        /* Calendly Callout */
+        .calendly-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .calendly-callout {
+            position: absolute;
+            top: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .callout-text {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95rem;
+            color: #E07A3C;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+        }
+
+        .squiggle-arrow {
+            width: 60px;
+            height: 30px;
+            margin-top: 4px;
+        }
+
+        .calendly-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #E07A3C;
+            text-decoration: none;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid #E07A3C;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            background: #FEF3EE;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .calendly-btn:hover {
+            background: #E07A3C;
+            color: white;
+        }
+
         /* Sections */
         section {
             padding: 4rem 2rem;
@@ -258,6 +312,10 @@
             .highlight-date {
                 min-width: auto;
             }
+
+            .calendly-callout {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -301,10 +359,19 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 1 8l11 5 9-4.09V17h2V8L12 3zM3.27 8.94 12 13l8.73-4.06L12 4.94 3.27 8.94zM11 14.97v3.51l1 .5 1-.5v-3.51L12 16l-1-1.03z"/></svg>
                     Scholar
                 </a>
-                <a href="https://calendly.com/ryanplagasse/technical-interview" target="_blank">
-                    <img src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/calendly-jbjluknocqbqwyil7anw9.png/calendly-093vyga7bn0gcn3gt31dbhp.png?_a=DATAg1AAZAA0" alt="Calendly" width="18" height="18" style="display: inline;">
-                    Book a Meeting!
-                </a>
+                <div class="calendly-wrapper">
+                    <div class="calendly-callout">
+                        <span class="callout-text">Into AI research? Let's chat!</span>
+                        <svg class="squiggle-arrow" viewBox="0 0 60 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 5 C 20 8, 35 8, 45 18" stroke="#E07A3C" stroke-width="2" stroke-linecap="round" stroke-dasharray="5 3" fill="none"/>
+                            <path d="M40 22 L48 19 L44 11" stroke="#E07A3C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                    </div>
+                    <a href="https://calendly.com/ryanplagasse/technical-interview" target="_blank" class="calendly-btn">
+                        <img src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/calendly-jbjluknocqbqwyil7anw9.png/calendly-093vyga7bn0gcn3gt31dbhp.png?_a=DATAg1AAZAA0" alt="Calendly" width="18" height="18" style="display: inline;">
+                        Book a Meeting!
+                    </a>
+                </div>
             </div>
         </div>
     </section>
@@ -326,7 +393,7 @@
         <div class="highlights-grid">
             <div class="highlight-item">
                 <span class="highlight-date">Dec 2025</span>
-                <span class="highlight-content">Promoted to AI/ML Research Scientist; founding member of Future AI Research Team leading work on looping transformers, scalable oversight, and deep evals</span>
+                <span class="highlight-content">Promoted to AI/ML Research Scientist; founding member of Future AI Research Team leading interpretability research on looping transformers</span>
             </div>
             <div class="highlight-item">
                 <span class="highlight-date">Dec 2025</span>
