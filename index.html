@@ -31,10 +31,122 @@
             color: var(--text);
             line-height: 1.6;
             font-size: 16px;
+            position: relative;
         }
 
         html {
             scroll-behavior: smooth;
+        }
+
+        #life-background {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.05;
+        }
+
+        .life-controls {
+            position: fixed;
+            right: 1rem;
+            bottom: 3.75rem;
+            width: min(280px, calc(100vw - 2rem));
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 12px 30px rgba(28, 25, 23, 0.12);
+            z-index: 1001;
+            color: var(--text);
+            font-size: 0.85rem;
+        }
+
+        .life-controls h2 {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .life-control {
+            display: grid;
+            gap: 0.35rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .life-control label {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .life-control input {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+
+        .life-control input[type="color"] {
+            height: 2rem;
+            padding: 0;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: transparent;
+        }
+
+        .life-control-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .life-control-actions button {
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.45rem 0.7rem;
+            background: var(--bg-alt);
+            color: var(--text-secondary);
+            font: inherit;
+            cursor: pointer;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .life-control-actions button:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .life-toggle {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            width: 3rem;
+            height: 2.25rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 20px rgba(28, 25, 23, 0.12);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            z-index: 1001;
+            transition: border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .life-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        section,
+        footer {
+            position: relative;
+            z-index: 1;
         }
 
         /* Navigation */
@@ -285,6 +397,8 @@
             border-top: 1px solid var(--border);
             color: var(--text-secondary);
             font-size: 0.85rem;
+            background: rgba(250, 250, 249, 0.72);
+            backdrop-filter: blur(2px);
         }
 
         /* Responsive */
@@ -317,10 +431,51 @@
             .calendly-callout {
                 display: none;
             }
+
+            .life-controls {
+                right: 0.75rem;
+                bottom: 3.5rem;
+            }
+
+            .life-toggle {
+                right: 0.75rem;
+                bottom: 0.75rem;
+            }
         }
     </style>
 </head>
 <body>
+    <canvas id="life-background" aria-hidden="true"></canvas>
+    <button class="life-toggle" id="life-toggle" type="button" aria-controls="life-controls" aria-expanded="false" title="Toggle Life controls">Life</button>
+    <!-- Remove hidden to bring the tuning panel back. -->
+    <aside class="life-controls" id="life-controls" aria-label="Game of Life background controls" hidden>
+        <h2>Life Background</h2>
+        <div class="life-control">
+            <label for="life-color">Color <span id="life-color-value">#564130</span></label>
+            <input id="life-color" type="color" value="#564130">
+        </div>
+        <div class="life-control">
+            <label for="life-opacity">Transparency <span id="life-opacity-value">5%</span></label>
+            <input id="life-opacity" type="range" min="0" max="100" value="5">
+        </div>
+        <div class="life-control">
+            <label for="life-cell-size">Cell Size <span id="life-cell-size-value">14px</span></label>
+            <input id="life-cell-size" type="range" min="6" max="32" value="14">
+        </div>
+        <div class="life-control">
+            <label for="life-speed">Speed <span id="life-speed-value">110ms</span></label>
+            <input id="life-speed" type="range" min="40" max="1000" step="10" value="110">
+        </div>
+        <div class="life-control">
+            <label for="life-density">Density <span id="life-density-value">15%</span></label>
+            <input id="life-density" type="range" min="5" max="45" value="15">
+        </div>
+        <div class="life-control-actions">
+            <button id="life-reset" type="button">Reset</button>
+            <button id="life-hide-controls" type="button">Hide</button>
+        </div>
+    </aside>
+
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
@@ -361,7 +516,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 1 8l11 5 9-4.09V17h2V8L12 3zM3.27 8.94 12 13l8.73-4.06L12 4.94 3.27 8.94zM11 14.97v3.51l1 .5 1-.5v-3.51L12 16l-1-1.03z"/></svg>
                     Scholar
                 </a>
-                <a href="https://calendly.com/ryanplagasse/technical-interview" target="_blank" class="calendly-btn">
+                <a href="https://cal.com/ryan-lagasse" target="_blank" class="calendly-btn">
                     <img src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/calendly-jbjluknocqbqwyil7anw9.png/calendly-093vyga7bn0gcn3gt31dbhp.png?_a=DATAg1AAZAA0" alt="Calendly" width="18" height="18" style="display: inline;">
                     Book a Meeting!
                 </a>
@@ -452,5 +607,189 @@
     <footer id="contact">
         <p>© 2025 Ryan Lagasse</p>
     </footer>
+    <script>
+        (() => {
+            const canvas = document.getElementById('life-background');
+            const ctx = canvas.getContext('2d');
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const controls = document.querySelector('.life-controls');
+            const toggleButton = document.getElementById('life-toggle');
+            const colorInput = document.getElementById('life-color');
+            const opacityInput = document.getElementById('life-opacity');
+            const cellSizeInput = document.getElementById('life-cell-size');
+            const speedInput = document.getElementById('life-speed');
+            const densityInput = document.getElementById('life-density');
+            const resetButton = document.getElementById('life-reset');
+            const hideButton = document.getElementById('life-hide-controls');
+            const colorValue = document.getElementById('life-color-value');
+            const opacityValue = document.getElementById('life-opacity-value');
+            const cellSizeValue = document.getElementById('life-cell-size-value');
+            const speedValue = document.getElementById('life-speed-value');
+            const densityValue = document.getElementById('life-density-value');
+            const settings = {
+                color: colorInput.value,
+                opacity: Number(opacityInput.value) / 100,
+                cellSize: Number(cellSizeInput.value),
+                stepMs: prefersReducedMotion ? 1200 : Number(speedInput.value),
+                density: Number(densityInput.value) / 100
+            };
+            let columns = 0;
+            let rows = 0;
+            let grid = [];
+            let nextGrid = [];
+            let lastStep = 0;
+            let animationFrame = 0;
+
+            const syncLabels = () => {
+                colorValue.textContent = settings.color;
+                opacityValue.textContent = `${Math.round(settings.opacity * 100)}%`;
+                cellSizeValue.textContent = `${settings.cellSize}px`;
+                speedValue.textContent = `${settings.stepMs}ms`;
+                densityValue.textContent = `${Math.round(settings.density * 100)}%`;
+                canvas.style.opacity = settings.opacity;
+            };
+
+            const randomCell = () => Math.random() < settings.density ? 1 : 0;
+
+            const createGrid = () => Array.from(
+                { length: rows },
+                () => Array.from({ length: columns }, randomCell)
+            );
+
+            const resize = () => {
+                const pixelRatio = window.devicePixelRatio || 1;
+                columns = Math.ceil(window.innerWidth / settings.cellSize);
+                rows = Math.ceil(window.innerHeight / settings.cellSize);
+                canvas.width = Math.ceil(window.innerWidth * pixelRatio);
+                canvas.height = Math.ceil(window.innerHeight * pixelRatio);
+                canvas.style.width = `${window.innerWidth}px`;
+                canvas.style.height = `${window.innerHeight}px`;
+                ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+                grid = createGrid();
+                nextGrid = createGrid();
+                draw();
+            };
+
+            const neighborsFor = (x, y) => {
+                let total = 0;
+                for (let yOffset = -1; yOffset <= 1; yOffset += 1) {
+                    for (let xOffset = -1; xOffset <= 1; xOffset += 1) {
+                        if (xOffset === 0 && yOffset === 0) continue;
+                        const neighborY = (y + yOffset + rows) % rows;
+                        const neighborX = (x + xOffset + columns) % columns;
+                        total += grid[neighborY][neighborX];
+                    }
+                }
+                return total;
+            };
+
+            const evolve = () => {
+                for (let y = 0; y < rows; y += 1) {
+                    for (let x = 0; x < columns; x += 1) {
+                        const alive = grid[y][x] === 1;
+                        const neighbors = neighborsFor(x, y);
+                        nextGrid[y][x] = alive
+                            ? (neighbors === 2 || neighbors === 3 ? 1 : 0)
+                            : (neighbors === 3 ? 1 : 0);
+                    }
+                }
+                [grid, nextGrid] = [nextGrid, grid];
+            };
+
+            const draw = () => {
+                ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+                ctx.fillStyle = settings.color;
+                for (let y = 0; y < rows; y += 1) {
+                    for (let x = 0; x < columns; x += 1) {
+                        if (grid[y][x] === 1) {
+                            ctx.fillRect(
+                                x * settings.cellSize + 1,
+                                y * settings.cellSize + 1,
+                                settings.cellSize - 2,
+                                settings.cellSize - 2
+                            );
+                        }
+                    }
+                }
+            };
+
+            const keepAlive = () => {
+                let livingCells = 0;
+                for (let y = 0; y < rows; y += 1) {
+                    for (let x = 0; x < columns; x += 1) {
+                        livingCells += grid[y][x];
+                    }
+                }
+
+                if (livingCells < columns * rows * 0.04) {
+                    grid = createGrid();
+                }
+            };
+
+            const animate = (timestamp) => {
+                if (timestamp - lastStep > settings.stepMs) {
+                    evolve();
+                    keepAlive();
+                    draw();
+                    lastStep = timestamp;
+                }
+                animationFrame = requestAnimationFrame(animate);
+            };
+
+            const setControlsVisible = (visible) => {
+                controls.hidden = !visible;
+                toggleButton.setAttribute('aria-expanded', String(visible));
+            };
+
+            colorInput.addEventListener('input', () => {
+                settings.color = colorInput.value;
+                syncLabels();
+                draw();
+            });
+
+            opacityInput.addEventListener('input', () => {
+                settings.opacity = Number(opacityInput.value) / 100;
+                syncLabels();
+            });
+
+            cellSizeInput.addEventListener('input', () => {
+                settings.cellSize = Number(cellSizeInput.value);
+                syncLabels();
+                resize();
+            });
+
+            speedInput.addEventListener('input', () => {
+                settings.stepMs = prefersReducedMotion ? 1200 : Number(speedInput.value);
+                syncLabels();
+            });
+
+            densityInput.addEventListener('input', () => {
+                settings.density = Number(densityInput.value) / 100;
+                syncLabels();
+            });
+
+            resetButton.addEventListener('click', () => {
+                grid = createGrid();
+                draw();
+            });
+
+            hideButton.addEventListener('click', () => {
+                setControlsVisible(false);
+            });
+
+            toggleButton.addEventListener('click', () => {
+                setControlsVisible(controls.hidden);
+            });
+
+            window.addEventListener('resize', resize);
+            syncLabels();
+            resize();
+            animationFrame = requestAnimationFrame(animate);
+
+            window.addEventListener('beforeunload', () => {
+                cancelAnimationFrame(animationFrame);
+            });
+        })();
+    </script>
 </body>
 </html>
