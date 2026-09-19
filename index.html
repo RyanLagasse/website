@@ -4,40 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ryan Lagasse</title>
+    <meta name="description" content="Ryan Lagasse: interpretability and safety research at d_model. Mechanistic understanding, autointerpretability, and negative alignment taxes.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #fafaf9;
-            --bg-alt: #ffffff;
-            --text: #1c1917;
-            --text-secondary: #57534e;
-            --accent: #0f766e;
-            --accent-light: #f0fdfa;
-            --border: #e7e5e4;
-            --border-hover: #a8a29e;
+            --cream: #f3f1e8;
+            --cream-2: #faf9f3;
+            --card: #fbfaf5;
+            --line: #dcd7c8;
+            --line-soft: #e8e4d8;
+            --ink: #23201b;
+            --sub: #5c584f;
+            --dim: #8a857a;
+            --pink: #d4537e;
+            --pink-bg: #f6e2e9;
+            --green: #1d9e75;
+            --green-bg: #dcefe6;
+            --violet: #7f77dd;
+            --violet-bg: #e6e3f6;
+            --blue: #2f6fb0;
+            --blue-bg: #dde7f3;
+            --orange: #d0761c;
+            --orange-bg: #f6e3cf;
+            --gold: #b0872e;
+            --gold-bg: #f5e9c8;
+            --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
         }
 
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
+            font-family: Inter, system-ui, -apple-system, sans-serif;
+            background: var(--cream);
+            color: var(--ink);
             font-size: 16px;
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
             position: relative;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 300; letter-spacing: -0.01em; }
+        a { color: inherit; }
 
+        /* ---- background texture: Game of Life ---- */
         #life-background {
             position: fixed;
             inset: 0;
@@ -45,754 +58,578 @@
             height: 100%;
             z-index: 0;
             pointer-events: none;
-            opacity: 0.03;
+            opacity: 0.035;
         }
+        .page { position: relative; z-index: 1; }
 
-        .life-controls {
-            position: fixed;
-            right: 1rem;
-            bottom: 3.75rem;
-            width: min(280px, calc(100vw - 2rem));
-            padding: 1rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 12px 30px rgba(28, 25, 23, 0.12);
-            z-index: 1001;
-            color: var(--text);
-            font-size: 0.85rem;
-        }
-
-        .life-controls h2 {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-        }
-
-        .life-control {
-            display: grid;
-            gap: 0.35rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .life-control label {
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            color: var(--text-secondary);
-        }
-
-        .life-control input {
-            width: 100%;
-            accent-color: var(--accent);
-        }
-
-        .life-control input[type="color"] {
-            height: 2rem;
-            padding: 0;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: transparent;
-        }
-
-        .life-control-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .life-control-actions button {
-            flex: 1;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 0.45rem 0.7rem;
-            background: var(--bg-alt);
-            color: var(--text-secondary);
-            font: inherit;
-            cursor: pointer;
-            transition: border-color 0.2s ease, color 0.2s ease;
-        }
-
-        .life-control-actions button:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .life-toggle {
-            position: fixed;
-            right: 1rem;
-            bottom: 1rem;
-            width: 3rem;
-            height: 2.25rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 20px rgba(28, 25, 23, 0.12);
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 1rem;
-            line-height: 1;
-            z-index: 1001;
-            transition: border-color 0.2s ease, color 0.2s ease;
-        }
-
-        .life-toggle:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        section,
-        footer {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
+        /* ---- nav ---- */
+        header.top {
+            position: sticky;
             top: 0;
-            width: 100%;
-            background: rgba(250, 250, 249, 0.9);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 12px 28px;
+            background: rgba(250, 249, 243, 0.86);
             backdrop-filter: blur(8px);
-            border-bottom: 1px solid var(--border);
-            z-index: 1000;
+            border-bottom: 1px solid var(--line);
         }
-
-        .nav-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav-brand {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: var(--text);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
+        .wordmark {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
             text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--accent);
-        }
-
-        /* Hero Section */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6rem 2rem 4rem;
-        }
-
-        .hero-content {
-            max-width: 700px;
-            text-align: center;
-        }
-
-        .hero h1 {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: clamp(2.5rem, 6vw, 3.5rem);
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--text);
-            letter-spacing: -0.02em;
-        }
-
-        .hero .tagline {
-            font-size: 1.15rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-        }
-
-        .positions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            justify-content: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .position-badge {
-            background: var(--bg-alt);
-            border: 1px solid var(--border);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        /* Social Links */
-        .social-links {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .social-links a {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            padding: 0.6rem 1.2rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            background: var(--bg-alt);
-            font-size: 0.9rem;
-        }
-
-        .social-links a:hover {
-            color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        /* Calendly Callout */
-        .calendly-wrapper {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 1.5rem;
-        }
-
-        .calendly-callout {
-            position: absolute;
-            top: -85px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
             white-space: nowrap;
         }
-
-        .callout-text {
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 1.1rem;
-            color: #E07A3C;
-            font-weight: 600;
-            letter-spacing: 0.01em;
-        }
-
-        .squiggle-arrow {
-            width: 120px;
-            height: 45px;
-            margin-top: 2px;
-        }
-
-        .calendly-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: white;
+        .wordmark b { color: var(--pink); font-weight: 700; }
+        nav.top-nav { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
+        nav.top-nav a {
             text-decoration: none;
-            padding: 0.6rem 1.2rem;
-            border: 2px solid #E07A3C;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            background: linear-gradient(135deg, #FF8C42 0%, #E07A3C 100%);
-            font-size: 0.9rem;
+            font-size: 0.86rem;
             font-weight: 500;
-            box-shadow: 0 0 20px rgba(255, 140, 66, 0.5), 0 0 40px rgba(224, 122, 60, 0.3);
+            padding: 6px 13px;
+            border-radius: 999px;
+            transition: all .15s;
         }
+        nav.top-nav a:hover { color: var(--pink); background: var(--pink-bg); }
 
-        .calendly-btn:hover {
-            background: linear-gradient(135deg, #FF9D56 0%, #F08A4C 100%);
-            box-shadow: 0 0 30px rgba(255, 140, 66, 0.8), 0 0 60px rgba(224, 122, 60, 0.5);
-        }
+        main { max-width: 1040px; margin: 0 auto; padding: 0 28px 72px; }
+        section { padding: 64px 0; border-top: 1px solid var(--line); }
+        section:first-of-type { border-top: 0; }
 
-        /* Sections */
-        section {
-            padding: 4rem 2rem;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-            color: var(--text);
-            letter-spacing: -0.01em;
-        }
-
-        /* Research Focus */
-        .focus-section {
-            padding: 2rem 2rem 0;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .focus-text {
-            font-size: 1.2rem;
-            line-height: 1.8;
-            color: var(--text-secondary);
-            text-align: center;
-        }
-
-        .focus-text strong {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        /* Highlights */
-        .highlights-grid {
+        /* ---- hero ---- */
+        .hero {
             display: grid;
-            gap: 0.75rem;
+            grid-template-columns: 1.05fr 0.95fr;
+            gap: 32px;
+            align-items: center;
+            padding: 56px 0 48px;
+            position: relative;
+        }
+        .hero::before {
+            content: "";
+            position: absolute;
+            inset: 0 -28px;
+            background-image: radial-gradient(var(--line) 1px, transparent 1.2px);
+            background-size: 22px 22px;
+            -webkit-mask-image: radial-gradient(70% 80% at 60% 50%, #000 30%, transparent 100%);
+            mask-image: radial-gradient(70% 80% at 60% 50%, #000 30%, transparent 100%);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .hero > * { position: relative; }
+        .eyebrow {
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--dim);
+            margin-bottom: 14px;
+        }
+        .eyebrow i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pink); margin-right: 8px; vertical-align: 1px; }
+        .hero h1 { font-size: 2.75rem; line-height: 1.08; margin-bottom: 14px; }
+        .hero .lede { font-size: 1.05rem; color: var(--sub); max-width: 480px; }
+        .hero .lede strong { color: var(--ink); font-weight: 500; }
+        .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.45);
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-size: 0.84rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all .18s;
+        }
+        .pill:hover { border-color: var(--pink); color: var(--pink); transform: translateY(-1px); }
+        .pill.primary { background: var(--pink); border-color: var(--pink); color: #fff; }
+        .pill.primary:hover { background: #c4466f; color: #fff; }
+        .pill svg { width: 15px; height: 15px; fill: currentColor; }
+
+        .knot-wrap { aspect-ratio: 1 / 1; max-height: 420px; width: 100%; position: relative; }
+        #knot { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .knot-caption {
+            position: absolute;
+            right: 6px;
+            bottom: 0;
+            font-family: var(--mono);
+            font-size: 0.66rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--dim);
         }
 
-        .highlight-item {
-            background: var(--bg-alt);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 1rem 1.25rem;
+        /* ---- roles ---- */
+        .roles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+        .chip {
+            font-size: 0.78rem;
+            padding: 5px 11px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--cream-2);
+            color: var(--sub);
+        }
+        .chip b { color: var(--ink); font-weight: 500; }
+
+        /* ---- section headings ---- */
+        .sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 8px; }
+        .sec-head h2 { font-size: 1.7rem; }
+        .sec-head .count { font-family: var(--mono); font-size: 0.72rem; color: var(--dim); letter-spacing: 0.06em; }
+        .sec-sub { color: var(--sub); max-width: 640px; }
+
+        /* ---- research cards ---- */
+        .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 30px; }
+        .card {
+            border: 1px solid var(--line);
+            background: var(--card);
+            border-radius: 16px;
+            overflow: hidden;
             display: flex;
-            align-items: baseline;
-            gap: 1.25rem;
-            transition: border-color 0.2s ease;
+            flex-direction: column;
+            transition: border-color .18s, transform .18s;
         }
-
-        .highlight-item:hover {
-            border-color: var(--border-hover);
+        .card:hover { border-color: var(--dim); transform: translateY(-2px); }
+        .tile { width: 100%; aspect-ratio: 16 / 9; display: block; background: var(--cream-2); border-bottom: 1px solid var(--line-soft); }
+        .card .body { padding: 18px 20px 20px; }
+        .card h3 { font-size: 1.22rem; font-weight: 400; margin-bottom: 6px; }
+        .card p { font-size: 0.9rem; color: var(--sub); }
+        .card p a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+        .card p a:hover { text-decoration-color: var(--pink); color: var(--pink); }
+        .tag {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 0.66rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
         }
+        .tag.green { color: #1a6e54; background: var(--green-bg); }
+        .tag.violet { color: #4f4796; background: var(--violet-bg); }
+        .tag.pink { color: #a03b64; background: var(--pink-bg); }
+        .tag.blue { color: #27568a; background: var(--blue-bg); }
+        .tag.gold { color: #7a5d1a; background: var(--gold-bg); }
+        .tag.orange { color: #9c5613; background: var(--orange-bg); }
 
-        .highlight-date {
-            color: var(--accent);
-            font-weight: 600;
-            font-size: 0.8rem;
-            min-width: 90px;
-            flex-shrink: 0;
+        .focus {
+            margin-top: 34px;
+            padding: 22px 26px;
+            border-left: 2px solid var(--pink);
+            background: rgba(255, 255, 255, 0.35);
+            border-radius: 0 14px 14px 0;
+            font-family: Fraunces, Georgia, serif;
+            font-size: 1.15rem;
+            font-weight: 300;
+            line-height: 1.6;
+            max-width: 820px;
         }
+        .focus strong { font-weight: 500; }
+        .focus a { color: var(--pink); text-decoration: none; border-bottom: 1px solid var(--pink-bg); }
+        .focus a:hover { border-bottom-color: var(--pink); }
 
-        .highlight-content {
-            color: var(--text-secondary);
-            font-size: 0.925rem;
+        /* ---- highlights ---- */
+        .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 18px 0 22px; font-size: 0.78rem; color: var(--sub); }
+        .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+        .year-block { display: grid; grid-template-columns: 72px 1fr; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line-soft); }
+        .year-block:first-of-type { border-top: 0; }
+        .year { font-family: Fraunces, Georgia, serif; font-size: 1.6rem; font-weight: 300; color: var(--dim); line-height: 1.1; padding-top: 6px; }
+        .rows { display: grid; gap: 2px; }
+        .row {
+            display: grid;
+            grid-template-columns: 12px 56px 1fr auto;
+            gap: 12px;
+            align-items: start;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: background .12s;
         }
+        .row:hover { background: rgba(255, 255, 255, 0.5); }
+        .row .dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 8px; }
+        .row .when { font-family: var(--mono); font-size: 0.72rem; color: var(--dim); padding-top: 5px; letter-spacing: 0.02em; }
+        .row .what { font-size: 0.93rem; }
+        .row .tag { margin: 3px 0 0; }
+        .dot.paper { background: var(--green); }
+        .dot.role { background: var(--pink); }
+        .dot.award { background: var(--gold); }
+        .dot.teaching { background: var(--violet); }
+        .dot.demo { background: var(--blue); }
+        .note { font-size: 0.8rem; color: var(--dim); margin-top: 18px; }
+        .note a { color: var(--sub); }
 
-        /* Footer */
+        /* ---- footer ---- */
         footer {
-            text-align: center;
-            padding: 3rem 2rem;
-            border-top: 1px solid var(--border);
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            background: rgba(250, 250, 249, 0.72);
-            backdrop-filter: blur(2px);
+            border-top: 1px solid var(--line);
+            padding: 36px 0 0;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.82rem;
+            color: var(--dim);
         }
+        footer .links { display: flex; gap: 16px; flex-wrap: wrap; }
+        footer a { color: var(--sub); text-decoration: none; border-bottom: 1px solid var(--line); }
+        footer a:hover { color: var(--pink); border-color: var(--pink); }
 
-        /* Responsive */
-        @media (max-width: 640px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .positions {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .social-links {
-                flex-direction: column;
-                width: 100%;
-                max-width: 280px;
-                margin: 0 auto;
-            }
-
-            .highlight-item {
-                flex-direction: column;
-                gap: 0.25rem;
-            }
-
-            .highlight-date {
-                min-width: auto;
-            }
-
-            .calendly-callout {
-                display: none;
-            }
-
-            .life-controls {
-                right: 0.75rem;
-                bottom: 3.5rem;
-            }
-
-            .life-toggle {
-                right: 0.75rem;
-                bottom: 0.75rem;
-            }
+        @media (max-width: 860px) {
+            .hero { grid-template-columns: 1fr; gap: 12px; padding-top: 36px; }
+            .knot-wrap { max-height: 300px; order: -1; }
+            .cards { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.3rem; }
+            .row { grid-template-columns: 12px 1fr; }
+            .row .when { grid-column: 2; padding-top: 0; }
+            .row .what { grid-column: 2; }
+            .row .tag { grid-column: 2; }
+            .year-block { grid-template-columns: 1fr; gap: 6px; }
+            .year { font-size: 1.3rem; }
+            header.top { padding: 10px 16px; gap: 10px; }
+            nav.top-nav a { font-size: 0.8rem; padding: 5px 9px; }
+            .wordmark { font-size: 0.7rem; letter-spacing: 0.16em; }
+            main { padding: 0 16px 56px; }
+            section { padding: 48px 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .card:hover, .pill:hover { transform: none; }
         }
     </style>
 </head>
 <body>
-    <canvas id="life-background" aria-hidden="true"></canvas>
-    <button class="life-toggle" id="life-toggle" type="button" aria-controls="life-controls" aria-expanded="false" title="Toggle Life controls">Life</button>
-    <!-- Remove hidden to bring the tuning panel back. -->
-    <aside class="life-controls" id="life-controls" aria-label="Game of Life background controls" hidden>
-        <h2>Life Background</h2>
-        <div class="life-control">
-            <label for="life-color">Color <span id="life-color-value">#564130</span></label>
-            <input id="life-color" type="color" value="#564130">
-        </div>
-        <div class="life-control">
-            <label for="life-opacity">Transparency <span id="life-opacity-value">3%</span></label>
-            <input id="life-opacity" type="range" min="0" max="100" value="3">
-        </div>
-        <div class="life-control">
-            <label for="life-cell-size">Cell Size <span id="life-cell-size-value">14px</span></label>
-            <input id="life-cell-size" type="range" min="6" max="32" value="14">
-        </div>
-        <div class="life-control">
-            <label for="life-speed">Speed <span id="life-speed-value">110ms</span></label>
-            <input id="life-speed" type="range" min="40" max="1000" step="10" value="110">
-        </div>
-        <div class="life-control">
-            <label for="life-density">Density <span id="life-density-value">15%</span></label>
-            <input id="life-density" type="range" min="5" max="45" value="15">
-        </div>
-        <div class="life-control-actions">
-            <button id="life-reset" type="button">Reset</button>
-            <button id="life-hide-controls" type="button">Hide</button>
-        </div>
-    </aside>
+<canvas id="life-background" aria-hidden="true"></canvas>
 
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="nav-brand">Ryan Lagasse</div>
-            <div class="nav-links">
-                <a href="#home">Home</a>
-                <a href="#highlights">Highlights</a>
-                <a href="#contact">Contact</a>
-            </div>
-        </div>
+<div class="page">
+<header class="top">
+    <a class="wordmark" href="#top">Ryan <b>·</b> Lagasse</a>
+    <nav class="top-nav">
+        <a href="#research">Research</a>
+        <a href="#highlights">Highlights</a>
+        <a href="#contact">Contact</a>
     </nav>
+</header>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-content">
+<main id="top">
+    <section class="hero">
+        <div>
+            <div class="eyebrow"><i></i>Interpretability &amp; safety research</div>
             <h1>Ryan Lagasse</h1>
-            <p class="tagline">AI/ML Research Scientist & Engineer</p>
-            <div class="positions">
-                <div class="position-badge">Interp & Safety Research @ d_model</div>
-                <div class="position-badge">Head of Research @ Algoverse AI Research</div>
-                <div class="position-badge">SPAR Research Fellow · Berkeley AI Fellow · Blue Dot Fellow</div>
-            </div>
-            <div class="social-links">
-                <a href="https://github.com/RyanLagasse" target="_blank">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+            <p class="lede">
+                AI/ML research scientist. I work on <strong>understanding models mechanistically</strong>:
+                finding the structure inside them, scaling that understanding without a human in the loop,
+                and making safety something that pays for itself.
+            </p>
+            <div class="pills">
+                <a class="pill primary" href="https://cal.com/ryan-lagasse" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm-2 8h14v10H5V10z"/></svg>
+                    Book a meeting
+                </a>
+                <a class="pill" href="https://github.com/RyanLagasse" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
                     GitHub
                 </a>
-                <a href="https://www.linkedin.com/in/lagasse-ryan/" target="_blank">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                    LinkedIn
-                </a>
-                <a href="mailto:ryanplagasse@gmail.com">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
-                    Email
-                </a>
-                <a href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 1 8l11 5 9-4.09V17h2V8L12 3zM3.27 8.94 12 13l8.73-4.06L12 4.94 3.27 8.94zM11 14.97v3.51l1 .5 1-.5v-3.51L12 16l-1-1.03z"/></svg>
+                <a class="pill" href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24"><path d="M12 3 1 8l11 5 9-4.09V17h2V8L12 3zM3.27 8.94 12 13l8.73-4.06L12 4.94 3.27 8.94zM11 14.97v3.51l1 .5 1-.5v-3.51L12 16l-1-1.03z"/></svg>
                     Scholar
                 </a>
-                <a href="https://cal.com/ryan-lagasse" target="_blank" class="calendly-btn">
-                    <img src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/calendly-jbjluknocqbqwyil7anw9.png/calendly-093vyga7bn0gcn3gt31dbhp.png?_a=DATAg1AAZAA0" alt="Calendly" width="18" height="18" style="display: inline;">
-                    Book a Meeting!
+                <a class="pill" href="https://www.linkedin.com/in/lagasse-ryan/" target="_blank" rel="noopener">
+                    <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    LinkedIn
                 </a>
-                </div>
+                <a class="pill" href="mailto:ryanplagasse@gmail.com">
+                    <svg viewBox="0 0 24 24"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
+                    Email
+                </a>
             </div>
+            <div class="roles">
+                <span class="chip"><b>Interp &amp; Safety Research</b> · d_model</span>
+                <span class="chip"><b>Head of Research</b> · Algoverse AI Research</span>
+                <span class="chip">SPAR Fellow</span>
+                <span class="chip">Berkeley AI Policy Fellow</span>
+                <span class="chip">BlueDot Fellow</span>
+            </div>
+        </div>
+        <div class="knot-wrap">
+            <canvas id="knot" aria-hidden="true"></canvas>
+            <span class="knot-caption">a curve, depth-coloured</span>
         </div>
     </section>
 
-    <!-- Research Focus -->
-    <section class="focus-section">
-        <p class="focus-text">
-            I care about understanding AI systems <strong>mechanistically</strong> - not just
-            observing that they work, but knowing <em>why</em>. I'm especially drawn to
-            approaches that scale, like <strong>autointerpretability</strong>: understanding
-            models from the inside without a human in the loop for every feature. My theory of change is that we need
-            <a href="https://www.lesswrong.com/posts/xhLopzaJHtdkz9siQ/the-case-for-a-negative-alignment-tax"><strong>negative
-            alignment taxes </strong></a> - safety properties that make a system <em>more</em>
-            capable, not less, so labs adopt them because they work rather than out of
-            goodwill. I believe progress there is one of the most direct paths to AI systems
-            we can actually trust. My north star is to <strong>help AGI go well</strong>.
+    <section id="research">
+        <div class="sec-head"><h2>What I work on</h2><span class="count">3 threads</span></div>
+        <p class="sec-sub">Three questions I keep coming back to, from the object being studied to the incentive that decides whether anyone adopts the answer.</p>
+
+        <div class="cards">
+            <a class="card" href="#highlights" style="text-decoration:none">
+                <canvas class="tile" data-tile="graph" aria-hidden="true"></canvas>
+                <div class="body">
+                    <span class="tag green">mechanistic</span>
+                    <h3>What is the structure?</h3>
+                    <p>Not just observing that a model works, but knowing why. Circuits, neurons, and the geometry of the features they compute.</p>
+                </div>
+            </a>
+            <a class="card" href="#highlights" style="text-decoration:none">
+                <canvas class="tile" data-tile="grid" aria-hidden="true"></canvas>
+                <div class="body">
+                    <span class="tag violet">autointerp</span>
+                    <h3>Does it scale?</h3>
+                    <p>Understanding models from the inside without a human in the loop for every feature. Approaches that get cheaper as models get bigger.</p>
+                </div>
+            </a>
+            <a class="card" href="https://www.lesswrong.com/posts/xhLopzaJHtdkz9siQ/the-case-for-a-negative-alignment-tax" target="_blank" rel="noopener" style="text-decoration:none">
+                <canvas class="tile" data-tile="curves" aria-hidden="true"></canvas>
+                <div class="body">
+                    <span class="tag pink">theory of change</span>
+                    <h3>Does it pay for itself?</h3>
+                    <p>Negative alignment taxes: safety properties that make a system more capable, not less, so labs adopt them because they work.</p>
+                </div>
+            </a>
+        </div>
+
+        <p class="focus">
+            My north star is to <strong>help AGI go well</strong>. I think the most direct path runs through
+            <a href="https://www.lesswrong.com/posts/xhLopzaJHtdkz9siQ/the-case-for-a-negative-alignment-tax" target="_blank" rel="noopener">negative alignment taxes</a>:
+            safety that labs adopt because it works, not out of goodwill. Mechanistic understanding that scales is how we get there.
         </p>
     </section>
 
-    <!-- Highlights -->
     <section id="highlights">
-        <h2 class="section-title">Highlights</h2>
-        <div class="highlights-grid">
-            <div class="highlight-item">
-                <span class="highlight-date">N/A</span>
-                <span class="highlight-content">I stopped updating this - check my LinkedIn or google scholar</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Dec 2025</span>
-                <span class="highlight-content">AI/ML Research Scientist; founding member of Future AI Research Team</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Dec 2025</span>
-                <span class="highlight-content">"Alignment-Constrained Pruning LLMs" accepted to DAI @ AAAI 2026</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Sep 2025</span>
-                <span class="highlight-content">"A Few Bad Neurons: Isolating and Surgically Correcting Sycophancy" accepted to CogInterp @ NeurIPS 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Sep 2025</span>
-                <span class="highlight-content">"Circuit Discovery via Hybrid Attribution-Pruning Framework" accepted to MechInterp @ NeurIPS 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Sep 2025</span>
-                <span class="highlight-content">"Active Inference Control: Steering, Not Just Scaling, Language Model Reasoning" accepted to Efficient Reasoning @ NeurIPS 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Aug 2025</span>
-                <span class="highlight-content">"HalluTree: Explainable Multi-Hop Hallucination Detection" accepted to NewSumm @ EMNLP 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Jul 2025</span>
-                <span class="highlight-content">Promoted to Director at Algoverse AI Research</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Jun 2025</span>
-                <span class="highlight-content">"Iterative RAG with Semantic Entropy" accepted to VecDB @ ICML 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">May 2025</span>
-                <span class="highlight-content">Joined Lockheed Martin AI Center full-time as AI/ML Research Engineer</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Apr 2025</span>
-                <span class="highlight-content">Won track at Yale Quantum Hackathon</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Jan 2025</span>
-                <span class="highlight-content">Selected as Berkeley AI Policy Fellow</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Jan 2025</span>
-                <span class="highlight-content">"Hybrid Quantum Algorithms for N-Body Simulations" accepted as oral presentation at QCNC 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Sep 2024</span>
-                <span class="highlight-content">Led research for autonomous UAV-UGV teaming demo at EDGE24 (100% field success rate)</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Dec 2023</span>
-                <span class="highlight-content">Created and taught UConn's "Intro to Transformers" course (CSE 4095)</span>
+        <div class="sec-head"><h2>Highlights</h2><span class="count">2023 → 2025</span></div>
+        <p class="sec-sub">Papers, roles, and the occasional hackathon. Colour is the kind of thing it was.</p>
+        <div class="legend">
+            <span><i style="background:var(--green)"></i>paper</span>
+            <span><i style="background:var(--pink)"></i>role</span>
+            <span><i style="background:var(--gold)"></i>award</span>
+            <span><i style="background:var(--blue)"></i>demo</span>
+            <span><i style="background:var(--violet)"></i>teaching</span>
+        </div>
+
+        <div class="year-block">
+            <div class="year">2025</div>
+            <div class="rows">
+                <div class="row"><span class="dot role"></span><span class="when">Dec</span><span class="what">AI/ML Research Scientist; founding member of the Future AI Research Team</span><span class="tag pink">role</span></div>
+                <div class="row"><span class="dot paper"></span><span class="when">Dec</span><span class="what">“Alignment-Constrained Pruning LLMs” accepted to DAI @ AAAI 2026</span><span class="tag green">paper</span></div>
+                <div class="row"><span class="dot paper"></span><span class="when">Sep</span><span class="what">“A Few Bad Neurons: Isolating and Surgically Correcting Sycophancy” accepted to CogInterp @ NeurIPS 2025</span><span class="tag green">paper</span></div>
+                <div class="row"><span class="dot paper"></span><span class="when">Sep</span><span class="what">“Circuit Discovery via Hybrid Attribution-Pruning Framework” accepted to MechInterp @ NeurIPS 2025</span><span class="tag green">paper</span></div>
+                <div class="row"><span class="dot paper"></span><span class="when">Sep</span><span class="what">“Active Inference Control: Steering, Not Just Scaling, Language Model Reasoning” accepted to Efficient Reasoning @ NeurIPS 2025</span><span class="tag green">paper</span></div>
+                <div class="row"><span class="dot paper"></span><span class="when">Aug</span><span class="what">“HalluTree: Explainable Multi-Hop Hallucination Detection” accepted to NewSumm @ EMNLP 2025</span><span class="tag green">paper</span></div>
+                <div class="row"><span class="dot role"></span><span class="when">Jul</span><span class="what">Promoted to Director at Algoverse AI Research</span><span class="tag pink">role</span></div>
+                <div class="row"><span class="dot paper"></span><span class="when">Jun</span><span class="what">“Iterative RAG with Semantic Entropy” accepted to VecDB @ ICML 2025</span><span class="tag green">paper</span></div>
+                <div class="row"><span class="dot role"></span><span class="when">May</span><span class="what">Joined Lockheed Martin AI Center full-time as AI/ML Research Engineer</span><span class="tag pink">role</span></div>
+                <div class="row"><span class="dot award"></span><span class="when">Apr</span><span class="what">Won track at Yale Quantum Hackathon</span><span class="tag gold">award</span></div>
+                <div class="row"><span class="dot award"></span><span class="when">Jan</span><span class="what">Selected as Berkeley AI Policy Fellow</span><span class="tag gold">award</span></div>
+                <div class="row"><span class="dot paper"></span><span class="when">Jan</span><span class="what">“Hybrid Quantum Algorithms for N-Body Simulations” accepted as an oral presentation at QCNC 2025</span><span class="tag green">paper</span></div>
             </div>
         </div>
+        <div class="year-block">
+            <div class="year">2024</div>
+            <div class="rows">
+                <div class="row"><span class="dot demo"></span><span class="when">Sep</span><span class="what">Led research for an autonomous UAV-UGV teaming demo at EDGE24 (100% field success rate)</span><span class="tag blue">demo</span></div>
+            </div>
+        </div>
+        <div class="year-block">
+            <div class="year">2023</div>
+            <div class="rows">
+                <div class="row"><span class="dot teaching"></span><span class="when">Dec</span><span class="what">Created and taught UConn’s “Intro to Transformers” course (CSE 4095)</span><span class="tag violet">teaching</span></div>
+            </div>
+        </div>
+
+        <p class="note">Last refreshed Dec 2025. For anything newer, <a href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank" rel="noopener">Scholar</a> and <a href="https://www.linkedin.com/in/lagasse-ryan/" target="_blank" rel="noopener">LinkedIn</a> are current.</p>
     </section>
 
-    <!-- Footer -->
     <footer id="contact">
-        <p>© 2025 Ryan Lagasse</p>
+        <span>© 2026 Ryan Lagasse</span>
+        <span class="links">
+            <a href="mailto:ryanplagasse@gmail.com">ryanplagasse@gmail.com</a>
+            <a href="https://cal.com/ryan-lagasse" target="_blank" rel="noopener">cal.com</a>
+            <a href="https://github.com/RyanLagasse" target="_blank" rel="noopener">github</a>
+        </span>
     </footer>
-    <script>
-        (() => {
-            const canvas = document.getElementById('life-background');
-            const ctx = canvas.getContext('2d');
-            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const controls = document.querySelector('.life-controls');
-            const toggleButton = document.getElementById('life-toggle');
-            const colorInput = document.getElementById('life-color');
-            const opacityInput = document.getElementById('life-opacity');
-            const cellSizeInput = document.getElementById('life-cell-size');
-            const speedInput = document.getElementById('life-speed');
-            const densityInput = document.getElementById('life-density');
-            const resetButton = document.getElementById('life-reset');
-            const hideButton = document.getElementById('life-hide-controls');
-            const colorValue = document.getElementById('life-color-value');
-            const opacityValue = document.getElementById('life-opacity-value');
-            const cellSizeValue = document.getElementById('life-cell-size-value');
-            const speedValue = document.getElementById('life-speed-value');
-            const densityValue = document.getElementById('life-density-value');
-            const settings = {
-                color: colorInput.value,
-                opacity: Number(opacityInput.value) / 100,
-                cellSize: Number(cellSizeInput.value),
-                stepMs: prefersReducedMotion ? 1200 : Number(speedInput.value),
-                density: Number(densityInput.value) / 100
-            };
-            let columns = 0;
-            let rows = 0;
-            let grid = [];
-            let nextGrid = [];
-            let lastStep = 0;
-            let animationFrame = 0;
+</main>
+</div>
 
-            const syncLabels = () => {
-                colorValue.textContent = settings.color;
-                opacityValue.textContent = `${Math.round(settings.opacity * 100)}%`;
-                cellSizeValue.textContent = `${settings.cellSize}px`;
-                speedValue.textContent = `${settings.stepMs}ms`;
-                densityValue.textContent = `${Math.round(settings.density * 100)}%`;
-                canvas.style.opacity = settings.opacity;
-            };
+<script>
+(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const PINK = [212, 83, 126], GREEN = [29, 158, 117], VIOLET = [127, 119, 221], BLUE = [47, 111, 176], LINE = '#dcd7c8';
+    const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+    const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 
-            const randomCell = () => Math.random() < settings.density ? 1 : 0;
+    // Size a canvas to its CSS box at device pixel ratio. Returns [ctx, w, h].
+    const fit = (c) => {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = c.clientWidth, h = c.clientHeight;
+        c.width = Math.max(1, Math.round(w * dpr));
+        c.height = Math.max(1, Math.round(h * dpr));
+        const x = c.getContext('2d');
+        x.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return [x, w, h];
+    };
 
-            const createGrid = () => Array.from(
-                { length: rows },
-                () => Array.from({ length: columns }, randomCell)
-            );
-
-            const resize = () => {
-                const pixelRatio = window.devicePixelRatio || 1;
-                columns = Math.ceil(window.innerWidth / settings.cellSize);
-                rows = Math.ceil(window.innerHeight / settings.cellSize);
-                canvas.width = Math.ceil(window.innerWidth * pixelRatio);
-                canvas.height = Math.ceil(window.innerHeight * pixelRatio);
-                canvas.style.width = `${window.innerWidth}px`;
-                canvas.style.height = `${window.innerHeight}px`;
-                ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-                grid = createGrid();
-                nextGrid = createGrid();
-                draw();
-            };
-
-            const neighborsFor = (x, y) => {
-                let total = 0;
-                for (let yOffset = -1; yOffset <= 1; yOffset += 1) {
-                    for (let xOffset = -1; xOffset <= 1; xOffset += 1) {
-                        if (xOffset === 0 && yOffset === 0) continue;
-                        const neighborY = (y + yOffset + rows) % rows;
-                        const neighborX = (x + xOffset + columns) % columns;
-                        total += grid[neighborY][neighborX];
-                    }
+    /* ---------- hero: 3D Lissajous knot, depth-coloured ---------- */
+    (() => {
+        const c = document.getElementById('knot');
+        if (!c) return;
+        const N = 1600, TAU = Math.PI * 2;
+        const a = 3, b = 4, cc = 5, phase = Math.PI / 3, tilt = 0.55;
+        const ct = Math.cos(tilt), st = Math.sin(tilt);
+        let yaw = 0.3, ctx, W, H;
+        const size = () => { [ctx, W, H] = fit(c); };
+        const frame = () => {
+            ctx.clearRect(0, 0, W, H);
+            const cx = W * 0.5, cy = H * 0.5, sc = Math.min(W, H) * 0.4;
+            const cw = Math.cos(yaw), sw = Math.sin(yaw);
+            ctx.lineWidth = 1.7; ctx.lineCap = 'round';
+            let prev = null;
+            for (let i = 0; i <= N; i++) {
+                const t = i / N * TAU;
+                const X = Math.sin(a * t + phase), Y = Math.sin(b * t), Z = Math.sin(cc * t);
+                const x1 = X * cw - Z * sw, z1 = X * sw + Z * cw;
+                const y2 = Y * ct - z1 * st, z2 = Y * st + z1 * ct;
+                const sx = cx + x1 * sc, sy = cy - y2 * sc;
+                const d = Math.max(0, Math.min(1, (z2 + 1.3) / 2.6));
+                if (prev) {
+                    const col = d < 0.5 ? mix(PINK, VIOLET, d * 2) : mix(VIOLET, GREEN, (d - 0.5) * 2);
+                    ctx.strokeStyle = rgba(col, 0.25 + 0.6 * d);
+                    ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(sx, sy); ctx.stroke();
                 }
-                return total;
-            };
+                prev = [sx, sy];
+            }
+        };
+        size(); frame();
+        window.addEventListener('resize', () => { size(); frame(); });
+        if (!reduced) (function loop() { yaw += 0.005; frame(); requestAnimationFrame(loop); })();
+    })();
 
-            const evolve = () => {
-                for (let y = 0; y < rows; y += 1) {
-                    for (let x = 0; x < columns; x += 1) {
-                        const alive = grid[y][x] === 1;
-                        const neighbors = neighborsFor(x, y);
-                        nextGrid[y][x] = alive
-                            ? (neighbors === 2 || neighbors === 3 ? 1 : 0)
-                            : (neighbors === 3 ? 1 : 0);
-                    }
+    /* ---------- research tiles ---------- */
+    const tiles = {
+        // clustered node graph: mechanistic structure
+        graph(c) {
+            const [x, W, H] = fit(c);
+            const rand = mulberry(7);
+            const groups = [
+                { col: GREEN, n: 7, cx: .28, cy: .5 }, { col: VIOLET, n: 5, cx: .58, cy: .32 },
+                { col: PINK, n: 6, cx: .74, cy: .68 }, { col: BLUE, n: 5, cx: .48, cy: .74 }
+            ];
+            const pts = [];
+            groups.forEach(g => { for (let i = 0; i < g.n; i++) {
+                const a = rand() * 6.28, r = Math.pow(rand(), 0.6) * Math.min(W, H) * 0.24;
+                pts.push({ x: g.cx * W + Math.cos(a) * r, y: g.cy * H + Math.sin(a) * r, g, r: 2.5 + rand() * 3.5 });
+            }});
+            x.clearRect(0, 0, W, H);
+            for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
+                const p = pts[i], q = pts[j], d = Math.hypot(p.x - q.x, p.y - q.y), near = p.g === q.g ? 80 : 55;
+                if (d < near) {
+                    x.strokeStyle = p.g === q.g ? rgba(p.g.col, 0.35 * (1 - d / near)) : rgba([154, 154, 144], 0.15 * (1 - d / near));
+                    x.lineWidth = p.g === q.g ? 1 : 0.7;
+                    x.beginPath(); x.moveTo(p.x, p.y); x.lineTo(q.x, q.y); x.stroke();
                 }
-                [grid, nextGrid] = [nextGrid, grid];
-            };
-
+            }
+            pts.forEach(p => { x.beginPath(); x.arc(p.x, p.y, p.r, 0, 6.29); x.fillStyle = rgba(p.g.col, 1); x.fill(); x.lineWidth = 1.2; x.strokeStyle = '#faf9f3'; x.stroke(); });
+        },
+        // activation grid that slowly breathes: autointerp at scale
+        grid(c) {
+            let ctx, W, H, t = 0;
+            const rand = mulberry(3);
+            const cols = 22, rows = 12;
+            const seeds = Array.from({ length: cols * rows }, () => rand() * 6.28);
             const draw = () => {
-                ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-                ctx.fillStyle = settings.color;
-                for (let y = 0; y < rows; y += 1) {
-                    for (let x = 0; x < columns; x += 1) {
-                        if (grid[y][x] === 1) {
-                            ctx.fillRect(
-                                x * settings.cellSize + 1,
-                                y * settings.cellSize + 1,
-                                settings.cellSize - 2,
-                                settings.cellSize - 2
-                            );
-                        }
-                    }
+                ctx.clearRect(0, 0, W, H);
+                const cw = W / cols, ch = H / rows;
+                for (let r = 0; r < rows; r++) for (let k = 0; k < cols; k++) {
+                    const s = seeds[r * cols + k];
+                    const v = 0.5 + 0.5 * Math.sin(s + t + k * 0.35 - r * 0.2);
+                    const on = v > 0.8;
+                    ctx.fillStyle = on ? rgba(VIOLET, 0.2 + 0.7 * (v - 0.8) / 0.2) : rgba([220, 215, 200], 0.4);
+                    const pad = on ? 1.5 : 3;
+                    ctx.fillRect(k * cw + pad, r * ch + pad, cw - pad * 2, ch - pad * 2);
                 }
             };
-
-            const keepAlive = () => {
-                let livingCells = 0;
-                for (let y = 0; y < rows; y += 1) {
-                    for (let x = 0; x < columns; x += 1) {
-                        livingCells += grid[y][x];
-                    }
+            const size = () => { [ctx, W, H] = fit(c); draw(); };
+            size(); window.addEventListener('resize', size);
+            if (!reduced) (function loop() { t += 0.012; draw(); requestAnimationFrame(loop); })();
+        },
+        // two curves rising together: capability and safety, no tax
+        curves(c) {
+            const [x, W, H] = fit(c);
+            x.clearRect(0, 0, W, H);
+            const m = 18;
+            // faint grid
+            x.strokeStyle = LINE; x.lineWidth = 1;
+            for (let i = 1; i < 5; i++) { const y = m + (H - 2 * m) * i / 5; x.beginPath(); x.moveTo(m, y); x.lineTo(W - m, y); x.stroke(); }
+            const path = (f, col, w) => {
+                x.beginPath();
+                for (let i = 0; i <= 100; i++) {
+                    const u = i / 100, px = m + u * (W - 2 * m), py = H - m - f(u) * (H - 2 * m);
+                    i ? x.lineTo(px, py) : x.moveTo(px, py);
                 }
+                x.strokeStyle = col; x.lineWidth = w; x.lineCap = 'round'; x.stroke();
+            };
+            // "tax" baseline: capability alone
+            path(u => 0.08 + 0.55 * Math.pow(u, 1.6), rgba([138, 133, 122], 0.5), 1.2);
+            // negative-tax: safety and capability together, above the baseline
+            path(u => 0.10 + 0.78 * Math.pow(u, 1.25), rgba(PINK, 0.95), 2.2);
+            path(u => 0.05 + 0.6 * Math.pow(u, 1.15) + 0.06 * Math.sin(u * 9), rgba(BLUE, 0.8), 1.6);
+            // end dots
+            const end = (f, col) => { x.beginPath(); x.arc(W - m, H - m - f(1) * (H - 2 * m), 3.5, 0, 6.29); x.fillStyle = col; x.fill(); };
+            end(u => 0.10 + 0.78, rgba(PINK, 1)); end(u => 0.05 + 0.6 + 0.06 * Math.sin(9), rgba(BLUE, 1));
+        }
+    };
+    function mulberry(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+    document.querySelectorAll('canvas[data-tile]').forEach(c => {
+        const kind = c.dataset.tile;
+        tiles[kind](c);
+        if (kind !== 'grid') window.addEventListener('resize', () => tiles[kind](c));
+    });
 
-                if (livingCells < columns * rows * 0.04) {
-                    grid = createGrid();
+    /* ---------- background: Game of Life ---------- */
+    (() => {
+        const canvas = document.getElementById('life-background');
+        const ctx = canvas.getContext('2d');
+        const cell = 14, stepMs = reduced ? 1400 : 120, density = 0.15;
+        let cols = 0, rows = 0, grid = [], next = [], last = 0;
+        const make = () => Array.from({ length: rows }, () => Array.from({ length: cols }, () => Math.random() < density ? 1 : 0));
+        const resize = () => {
+            const dpr = window.devicePixelRatio || 1;
+            cols = Math.ceil(window.innerWidth / cell); rows = Math.ceil(window.innerHeight / cell);
+            canvas.width = Math.ceil(window.innerWidth * dpr); canvas.height = Math.ceil(window.innerHeight * dpr);
+            canvas.style.width = window.innerWidth + 'px'; canvas.style.height = window.innerHeight + 'px';
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            grid = make(); next = make(); draw();
+        };
+        const evolve = () => {
+            for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
+                let n = 0;
+                for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+                    if (dx || dy) n += grid[(y + dy + rows) % rows][(x + dx + cols) % cols];
                 }
-            };
-
-            const animate = (timestamp) => {
-                if (timestamp - lastStep > settings.stepMs) {
-                    evolve();
-                    keepAlive();
-                    draw();
-                    lastStep = timestamp;
-                }
-                animationFrame = requestAnimationFrame(animate);
-            };
-
-            const setControlsVisible = (visible) => {
-                controls.hidden = !visible;
-                toggleButton.setAttribute('aria-expanded', String(visible));
-            };
-
-            colorInput.addEventListener('input', () => {
-                settings.color = colorInput.value;
-                syncLabels();
-                draw();
-            });
-
-            opacityInput.addEventListener('input', () => {
-                settings.opacity = Number(opacityInput.value) / 100;
-                syncLabels();
-            });
-
-            cellSizeInput.addEventListener('input', () => {
-                settings.cellSize = Number(cellSizeInput.value);
-                syncLabels();
-                resize();
-            });
-
-            speedInput.addEventListener('input', () => {
-                settings.stepMs = prefersReducedMotion ? 1200 : Number(speedInput.value);
-                syncLabels();
-            });
-
-            densityInput.addEventListener('input', () => {
-                settings.density = Number(densityInput.value) / 100;
-                syncLabels();
-            });
-
-            resetButton.addEventListener('click', () => {
-                grid = createGrid();
-                draw();
-            });
-
-            hideButton.addEventListener('click', () => {
-                setControlsVisible(false);
-            });
-
-            toggleButton.addEventListener('click', () => {
-                setControlsVisible(controls.hidden);
-            });
-
-            window.addEventListener('resize', resize);
-            syncLabels();
-            resize();
-            animationFrame = requestAnimationFrame(animate);
-
-            window.addEventListener('beforeunload', () => {
-                cancelAnimationFrame(animationFrame);
-            });
-        })();
-    </script>
+                next[y][x] = grid[y][x] ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
+            }
+            [grid, next] = [next, grid];
+        };
+        const draw = () => {
+            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            ctx.fillStyle = '#564130';
+            let alive = 0;
+            for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (grid[y][x]) {
+                alive++;
+                ctx.fillRect(x * cell + 1, y * cell + 1, cell - 2, cell - 2);
+            }
+            if (alive < cols * rows * 0.04) grid = make();
+        };
+        const animate = (ts) => {
+            if (ts - last > stepMs) { evolve(); draw(); last = ts; }
+            requestAnimationFrame(animate);
+        };
+        window.addEventListener('resize', resize);
+        resize();
+        requestAnimationFrame(animate);
+    })();
+})();
+</script>
 </body>
 </html>
