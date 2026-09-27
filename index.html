@@ -1,798 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ryan Lagasse</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ryan Lagasse</title>
+  <meta name="description" content="Ryan Lagasse. I try to understand what is going on inside language models, and I work on making them safe.">
+  <script>try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+  <style>
+    .hello { margin-top: 72px; }
+    .hello h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.005em; margin-bottom: 18px; }
+    .hello p { color: var(--ink); margin-bottom: 14px; }
+    .hello p.soft { color: var(--sub); }
 
-        :root {
-            --bg: #fafaf9;
-            --bg-alt: #ffffff;
-            --text: #1c1917;
-            --text-secondary: #57534e;
-            --accent: #0f766e;
-            --accent-light: #f0fdfa;
-            --border: #e7e5e4;
-            --border-hover: #a8a29e;
-        }
+    /* the one big visual */
+    .window { margin: 44px 0 0; }
+    .window .frame {
+      position: relative; border: 1px solid var(--rule); border-radius: 14px; overflow: hidden;
+      background: var(--paper-2); aspect-ratio: 16 / 9;
+    }
+    #life { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
+    .window .under { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 12px; }
+    .window .under button {
+      font: inherit; background: none; border: 0; color: var(--dim); cursor: pointer; padding: 0; margin-left: 14px;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .window .under button:hover { color: var(--accent); }
+    .window .under > span:last-child { white-space: nowrap; }
+    @media (max-width: 520px) { .window .under .hint { display: none; } }
 
-        body {
-            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            font-size: 16px;
-            position: relative;
-        }
+    section.block { margin-top: 72px; }
+    section.block > .label { display: block; margin-bottom: 18px; }
 
-        html {
-            scroll-behavior: smooth;
-        }
+    /* writing list */
+    .posts { list-style: none; }
+    .post a {
+      display: grid; grid-template-columns: 76px 1fr; gap: 18px; align-items: center;
+      text-decoration: none; padding: 14px 0; border-top: 1px solid var(--rule);
+    }
+    .post:last-child a { border-bottom: 1px solid var(--rule); }
+    .post canvas { width: 76px; height: 48px; display: block; border-radius: 6px; background: var(--paper-2); }
+    .post .t { font-size: 19px; line-height: 1.35; }
+    .post .d { color: var(--sub); font-size: 16px; line-height: 1.45; margin-top: 3px; }
+    .post .m { margin-top: 6px; }
+    .post a:hover .t { color: var(--accent); }
+    .draft { color: var(--accent); }
 
-        #life-background {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.03;
-        }
-
-        .life-controls {
-            position: fixed;
-            right: 1rem;
-            bottom: 3.75rem;
-            width: min(280px, calc(100vw - 2rem));
-            padding: 1rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 12px 30px rgba(28, 25, 23, 0.12);
-            z-index: 1001;
-            color: var(--text);
-            font-size: 0.85rem;
-        }
-
-        .life-controls h2 {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 1rem;
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-        }
-
-        .life-control {
-            display: grid;
-            gap: 0.35rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .life-control label {
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            color: var(--text-secondary);
-        }
-
-        .life-control input {
-            width: 100%;
-            accent-color: var(--accent);
-        }
-
-        .life-control input[type="color"] {
-            height: 2rem;
-            padding: 0;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: transparent;
-        }
-
-        .life-control-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .life-control-actions button {
-            flex: 1;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 0.45rem 0.7rem;
-            background: var(--bg-alt);
-            color: var(--text-secondary);
-            font: inherit;
-            cursor: pointer;
-            transition: border-color 0.2s ease, color 0.2s ease;
-        }
-
-        .life-control-actions button:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .life-toggle {
-            position: fixed;
-            right: 1rem;
-            bottom: 1rem;
-            width: 3rem;
-            height: 2.25rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 20px rgba(28, 25, 23, 0.12);
-            color: var(--text-secondary);
-            cursor: pointer;
-            font-size: 1rem;
-            line-height: 1;
-            z-index: 1001;
-            transition: border-color 0.2s ease, color 0.2s ease;
-        }
-
-        .life-toggle:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        section,
-        footer {
-            position: relative;
-            z-index: 1;
-        }
-
-        /* Navigation */
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            background: rgba(250, 250, 249, 0.9);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid var(--border);
-            z-index: 1000;
-        }
-
-        .nav-container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .nav-brand {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-weight: 600;
-            font-size: 1.1rem;
-            color: var(--text);
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--accent);
-        }
-
-        /* Hero Section */
-        .hero {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 6rem 2rem 4rem;
-        }
-
-        .hero-content {
-            max-width: 700px;
-            text-align: center;
-        }
-
-        .hero h1 {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: clamp(2.5rem, 6vw, 3.5rem);
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--text);
-            letter-spacing: -0.02em;
-        }
-
-        .hero .tagline {
-            font-size: 1.15rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-        }
-
-        .positions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            justify-content: center;
-            margin-bottom: 2.5rem;
-        }
-
-        .position-badge {
-            background: var(--bg-alt);
-            border: 1px solid var(--border);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        /* Social Links */
-        .social-links {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .social-links a {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            padding: 0.6rem 1.2rem;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            transition: all 0.2s ease;
-            background: var(--bg-alt);
-            font-size: 0.9rem;
-        }
-
-        .social-links a:hover {
-            color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        /* Calendly Callout */
-        .calendly-wrapper {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-top: 1.5rem;
-        }
-
-        .calendly-callout {
-            position: absolute;
-            top: -85px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            white-space: nowrap;
-        }
-
-        .callout-text {
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 1.1rem;
-            color: #E07A3C;
-            font-weight: 600;
-            letter-spacing: 0.01em;
-        }
-
-        .squiggle-arrow {
-            width: 120px;
-            height: 45px;
-            margin-top: 2px;
-        }
-
-        .calendly-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: white;
-            text-decoration: none;
-            padding: 0.6rem 1.2rem;
-            border: 2px solid #E07A3C;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-            background: linear-gradient(135deg, #FF8C42 0%, #E07A3C 100%);
-            font-size: 0.9rem;
-            font-weight: 500;
-            box-shadow: 0 0 20px rgba(255, 140, 66, 0.5), 0 0 40px rgba(224, 122, 60, 0.3);
-        }
-
-        .calendly-btn:hover {
-            background: linear-gradient(135deg, #FF9D56 0%, #F08A4C 100%);
-            box-shadow: 0 0 30px rgba(255, 140, 66, 0.8), 0 0 60px rgba(224, 122, 60, 0.5);
-        }
-
-        /* Sections */
-        section {
-            padding: 4rem 2rem;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .section-title {
-            font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 2rem;
-            color: var(--text);
-            letter-spacing: -0.01em;
-        }
-
-        /* Research Focus */
-        .focus-section {
-            padding: 2rem 2rem 0;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .focus-text {
-            font-size: 1.2rem;
-            line-height: 1.8;
-            color: var(--text-secondary);
-            text-align: center;
-        }
-
-        .focus-text strong {
-            color: var(--accent);
-            font-weight: 600;
-        }
-
-        /* Highlights */
-        .highlights-grid {
-            display: grid;
-            gap: 0.75rem;
-        }
-
-        .highlight-item {
-            background: var(--bg-alt);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 1rem 1.25rem;
-            display: flex;
-            align-items: baseline;
-            gap: 1.25rem;
-            transition: border-color 0.2s ease;
-        }
-
-        .highlight-item:hover {
-            border-color: var(--border-hover);
-        }
-
-        .highlight-date {
-            color: var(--accent);
-            font-weight: 600;
-            font-size: 0.8rem;
-            min-width: 90px;
-            flex-shrink: 0;
-        }
-
-        .highlight-content {
-            color: var(--text-secondary);
-            font-size: 0.925rem;
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 3rem 2rem;
-            border-top: 1px solid var(--border);
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            background: rgba(250, 250, 249, 0.72);
-            backdrop-filter: blur(2px);
-        }
-
-        /* Responsive */
-        @media (max-width: 640px) {
-            .nav-links {
-                display: none;
-            }
-            
-            .positions {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .social-links {
-                flex-direction: column;
-                width: 100%;
-                max-width: 280px;
-                margin: 0 auto;
-            }
-
-            .highlight-item {
-                flex-direction: column;
-                gap: 0.25rem;
-            }
-
-            .highlight-date {
-                min-width: auto;
-            }
-
-            .calendly-callout {
-                display: none;
-            }
-
-            .life-controls {
-                right: 0.75rem;
-                bottom: 3.5rem;
-            }
-
-            .life-toggle {
-                right: 0.75rem;
-                bottom: 0.75rem;
-            }
-        }
-    </style>
+    .elsewhere p { color: var(--sub); margin-bottom: 10px; }
+    .elsewhere p a { color: var(--ink); }
+  </style>
 </head>
 <body>
-    <canvas id="life-background" aria-hidden="true"></canvas>
-    <button class="life-toggle" id="life-toggle" type="button" aria-controls="life-controls" aria-expanded="false" title="Toggle Life controls">Life</button>
-    <!-- Remove hidden to bring the tuning panel back. -->
-    <aside class="life-controls" id="life-controls" aria-label="Game of Life background controls" hidden>
-        <h2>Life Background</h2>
-        <div class="life-control">
-            <label for="life-color">Color <span id="life-color-value">#564130</span></label>
-            <input id="life-color" type="color" value="#564130">
-        </div>
-        <div class="life-control">
-            <label for="life-opacity">Transparency <span id="life-opacity-value">3%</span></label>
-            <input id="life-opacity" type="range" min="0" max="100" value="3">
-        </div>
-        <div class="life-control">
-            <label for="life-cell-size">Cell Size <span id="life-cell-size-value">14px</span></label>
-            <input id="life-cell-size" type="range" min="6" max="32" value="14">
-        </div>
-        <div class="life-control">
-            <label for="life-speed">Speed <span id="life-speed-value">110ms</span></label>
-            <input id="life-speed" type="range" min="40" max="1000" step="10" value="110">
-        </div>
-        <div class="life-control">
-            <label for="life-density">Density <span id="life-density-value">15%</span></label>
-            <input id="life-density" type="range" min="5" max="45" value="15">
-        </div>
-        <div class="life-control-actions">
-            <button id="life-reset" type="button">Reset</button>
-            <button id="life-hide-controls" type="button">Hide</button>
-        </div>
-    </aside>
+<div class="wrap">
+  <header class="bar">
+    <a class="mark" href="./"><canvas aria-hidden="true"></canvas>Ryan Lagasse</a>
+    <span class="bar-r"><button class="crab-btn" type="button" data-crabs="assets/crabs/" aria-label="Release the crabs" title="release the crabs"><img src="assets/crabs/code.gif" width="80" height="80" alt=""></button><button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.4 5.4 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8C12.92 3.04 12.46 3 12 3z"/></svg></button></span>
+  </header>
 
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-container">
-            <div class="nav-brand">Ryan Lagasse</div>
-            <div class="nav-links">
-                <a href="#home">Home</a>
-                <a href="#highlights">Highlights</a>
-                <a href="#contact">Contact</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <h1>Ryan Lagasse</h1>
-            <p class="tagline">AI/ML Research Scientist & Engineer</p>
-            <div class="positions">
-                <div class="position-badge">Interp & Safety Research @ d_model</div>
-                <div class="position-badge">Head of Research @ Algoverse AI Research</div>
-                <div class="position-badge">SPAR Research Fellow · Berkeley AI Fellow · Blue Dot Fellow</div>
-            </div>
-            <div class="social-links">
-                <a href="https://github.com/RyanLagasse" target="_blank">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    GitHub
-                </a>
-                <a href="https://www.linkedin.com/in/lagasse-ryan/" target="_blank">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                    LinkedIn
-                </a>
-                <a href="mailto:ryanplagasse@gmail.com">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
-                    Email
-                </a>
-                <a href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 1 8l11 5 9-4.09V17h2V8L12 3zM3.27 8.94 12 13l8.73-4.06L12 4.94 3.27 8.94zM11 14.97v3.51l1 .5 1-.5v-3.51L12 16l-1-1.03z"/></svg>
-                    Scholar
-                </a>
-                <a href="https://cal.com/ryan-lagasse" target="_blank" class="calendly-btn">
-                    <img src="https://assets.streamlinehq.com/image/private/w_300,h_300,ar_1/f_auto/v1/icons/logos/calendly-jbjluknocqbqwyil7anw9.png/calendly-093vyga7bn0gcn3gt31dbhp.png?_a=DATAg1AAZAA0" alt="Calendly" width="18" height="18" style="display: inline;">
-                    Book a Meeting!
-                </a>
-                </div>
-            </div>
-        </div>
+  <main>
+    <section class="hello">
+      <h1>Hi, I'm Ryan.</h1>
+      <p>I try to understand what is actually going on inside language models, their strange and alien biology, and I work on making them safe. Currently I am an interpretability and alignment researcher at d_model.</p>
+      <p class="soft">I love patterns everywhere, from nature and history to books and math. Here is one of my favorites.</p>
     </section>
 
-    <!-- Research Focus -->
-    <section class="focus-section">
-        <p class="focus-text">
-            I care about understanding AI systems <strong>mechanistically</strong> - not just
-            observing that they work, but knowing <em>why</em>. I'm especially drawn to
-            approaches that scale, like <strong>autointerpretability</strong>: understanding
-            models from the inside without a human in the loop for every feature. My theory of change is that we need
-            <a href="https://www.lesswrong.com/posts/xhLopzaJHtdkz9siQ/the-case-for-a-negative-alignment-tax"><strong>negative
-            alignment taxes </strong></a> - safety properties that make a system <em>more</em>
-            capable, not less, so labs adopt them because they work rather than out of
-            goodwill. I believe progress there is one of the most direct paths to AI systems
-            we can actually trust. My north star is to <strong>help AGI go well</strong>.
-        </p>
+    <figure class="window">
+      <div class="frame"><canvas id="life" aria-label="Conway's Game of Life. Click or drag to add cells."></canvas></div>
+      <figcaption class="under label">
+        <span>Conway's life · gen <span id="life-gen">0000</span><span class="hint"> · draw on it</span></span>
+        <span><button id="life-pause" type="button">pause</button><button id="life-reset" type="button">reseed</button></span>
+      </figcaption>
+    </figure>
+
+    <section class="block" id="writing">
+      <span class="label">Writing</span>
+      <ul class="posts">
+        <li class="post">
+          <a href="writing/why-i-work-on-ai-safety.html">
+            <canvas data-ca="auto" data-seed="why-i-work-on-ai-safety" data-cell="3" aria-hidden="true"></canvas>
+            <div>
+              <div class="t">Why I work on AI safety</div>
+              <div class="d">The beauty of interp, what worries me, and the two things I care about most right now.</div>
+              <div class="m label"><span class="draft">draft</span> · Sep 2026</div>
+            </div>
+          </a>
+        </li>
+      </ul>
     </section>
 
-    <!-- Highlights -->
-    <section id="highlights">
-        <h2 class="section-title">Highlights</h2>
-        <div class="highlights-grid">
-            <div class="highlight-item">
-                <span class="highlight-date">N/A</span>
-                <span class="highlight-content">I stopped updating this - check my LinkedIn or google scholar</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Dec 2025</span>
-                <span class="highlight-content">AI/ML Research Scientist; founding member of Future AI Research Team</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Dec 2025</span>
-                <span class="highlight-content">"Alignment-Constrained Pruning LLMs" accepted to DAI @ AAAI 2026</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Sep 2025</span>
-                <span class="highlight-content">"A Few Bad Neurons: Isolating and Surgically Correcting Sycophancy" accepted to CogInterp @ NeurIPS 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Sep 2025</span>
-                <span class="highlight-content">"Circuit Discovery via Hybrid Attribution-Pruning Framework" accepted to MechInterp @ NeurIPS 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Sep 2025</span>
-                <span class="highlight-content">"Active Inference Control: Steering, Not Just Scaling, Language Model Reasoning" accepted to Efficient Reasoning @ NeurIPS 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Aug 2025</span>
-                <span class="highlight-content">"HalluTree: Explainable Multi-Hop Hallucination Detection" accepted to NewSumm @ EMNLP 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Jul 2025</span>
-                <span class="highlight-content">Promoted to Director at Algoverse AI Research</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Jun 2025</span>
-                <span class="highlight-content">"Iterative RAG with Semantic Entropy" accepted to VecDB @ ICML 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">May 2025</span>
-                <span class="highlight-content">Joined Lockheed Martin AI Center full-time as AI/ML Research Engineer</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Apr 2025</span>
-                <span class="highlight-content">Won track at Yale Quantum Hackathon</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Jan 2025</span>
-                <span class="highlight-content">Selected as Berkeley AI Policy Fellow</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Jan 2025</span>
-                <span class="highlight-content">"Hybrid Quantum Algorithms for N-Body Simulations" accepted as oral presentation at QCNC 2025</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Sep 2024</span>
-                <span class="highlight-content">Led research for autonomous UAV-UGV teaming demo at EDGE24 (100% field success rate)</span>
-            </div>
-            <div class="highlight-item">
-                <span class="highlight-date">Dec 2023</span>
-                <span class="highlight-content">Created and taught UConn's "Intro to Transformers" course (CSE 4095)</span>
-            </div>
-        </div>
+    <section class="block elsewhere">
+      <span class="label">Elsewhere</span>
+      <p>Along the way I've done a bunch of things, including independent mech interp research, creating and teaching a course on transformers, and mentoring junior researchers.</p>
+      <p>Papers are on <a href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank" rel="noopener">Scholar</a>, code is on <a href="https://github.com/RyanLagasse" target="_blank" rel="noopener">GitHub</a>. If something here makes sense to you, <a href="mailto:ryanplagasse@gmail.com">write to me</a> or <a href="https://cal.com/ryan-lagasse" target="_blank" rel="noopener">grab a time</a>.</p>
     </section>
+  </main>
 
-    <!-- Footer -->
-    <footer id="contact">
-        <p>© 2025 Ryan Lagasse</p>
-    </footer>
-    <script>
-        (() => {
-            const canvas = document.getElementById('life-background');
-            const ctx = canvas.getContext('2d');
-            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const controls = document.querySelector('.life-controls');
-            const toggleButton = document.getElementById('life-toggle');
-            const colorInput = document.getElementById('life-color');
-            const opacityInput = document.getElementById('life-opacity');
-            const cellSizeInput = document.getElementById('life-cell-size');
-            const speedInput = document.getElementById('life-speed');
-            const densityInput = document.getElementById('life-density');
-            const resetButton = document.getElementById('life-reset');
-            const hideButton = document.getElementById('life-hide-controls');
-            const colorValue = document.getElementById('life-color-value');
-            const opacityValue = document.getElementById('life-opacity-value');
-            const cellSizeValue = document.getElementById('life-cell-size-value');
-            const speedValue = document.getElementById('life-speed-value');
-            const densityValue = document.getElementById('life-density-value');
-            const settings = {
-                color: colorInput.value,
-                opacity: Number(opacityInput.value) / 100,
-                cellSize: Number(cellSizeInput.value),
-                stepMs: prefersReducedMotion ? 1200 : Number(speedInput.value),
-                density: Number(densityInput.value) / 100
-            };
-            let columns = 0;
-            let rows = 0;
-            let grid = [];
-            let nextGrid = [];
-            let lastStep = 0;
-            let animationFrame = 0;
-
-            const syncLabels = () => {
-                colorValue.textContent = settings.color;
-                opacityValue.textContent = `${Math.round(settings.opacity * 100)}%`;
-                cellSizeValue.textContent = `${settings.cellSize}px`;
-                speedValue.textContent = `${settings.stepMs}ms`;
-                densityValue.textContent = `${Math.round(settings.density * 100)}%`;
-                canvas.style.opacity = settings.opacity;
-            };
-
-            const randomCell = () => Math.random() < settings.density ? 1 : 0;
-
-            const createGrid = () => Array.from(
-                { length: rows },
-                () => Array.from({ length: columns }, randomCell)
-            );
-
-            const resize = () => {
-                const pixelRatio = window.devicePixelRatio || 1;
-                columns = Math.ceil(window.innerWidth / settings.cellSize);
-                rows = Math.ceil(window.innerHeight / settings.cellSize);
-                canvas.width = Math.ceil(window.innerWidth * pixelRatio);
-                canvas.height = Math.ceil(window.innerHeight * pixelRatio);
-                canvas.style.width = `${window.innerWidth}px`;
-                canvas.style.height = `${window.innerHeight}px`;
-                ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-                grid = createGrid();
-                nextGrid = createGrid();
-                draw();
-            };
-
-            const neighborsFor = (x, y) => {
-                let total = 0;
-                for (let yOffset = -1; yOffset <= 1; yOffset += 1) {
-                    for (let xOffset = -1; xOffset <= 1; xOffset += 1) {
-                        if (xOffset === 0 && yOffset === 0) continue;
-                        const neighborY = (y + yOffset + rows) % rows;
-                        const neighborX = (x + xOffset + columns) % columns;
-                        total += grid[neighborY][neighborX];
-                    }
-                }
-                return total;
-            };
-
-            const evolve = () => {
-                for (let y = 0; y < rows; y += 1) {
-                    for (let x = 0; x < columns; x += 1) {
-                        const alive = grid[y][x] === 1;
-                        const neighbors = neighborsFor(x, y);
-                        nextGrid[y][x] = alive
-                            ? (neighbors === 2 || neighbors === 3 ? 1 : 0)
-                            : (neighbors === 3 ? 1 : 0);
-                    }
-                }
-                [grid, nextGrid] = [nextGrid, grid];
-            };
-
-            const draw = () => {
-                ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-                ctx.fillStyle = settings.color;
-                for (let y = 0; y < rows; y += 1) {
-                    for (let x = 0; x < columns; x += 1) {
-                        if (grid[y][x] === 1) {
-                            ctx.fillRect(
-                                x * settings.cellSize + 1,
-                                y * settings.cellSize + 1,
-                                settings.cellSize - 2,
-                                settings.cellSize - 2
-                            );
-                        }
-                    }
-                }
-            };
-
-            const keepAlive = () => {
-                let livingCells = 0;
-                for (let y = 0; y < rows; y += 1) {
-                    for (let x = 0; x < columns; x += 1) {
-                        livingCells += grid[y][x];
-                    }
-                }
-
-                if (livingCells < columns * rows * 0.04) {
-                    grid = createGrid();
-                }
-            };
-
-            const animate = (timestamp) => {
-                if (timestamp - lastStep > settings.stepMs) {
-                    evolve();
-                    keepAlive();
-                    draw();
-                    lastStep = timestamp;
-                }
-                animationFrame = requestAnimationFrame(animate);
-            };
-
-            const setControlsVisible = (visible) => {
-                controls.hidden = !visible;
-                toggleButton.setAttribute('aria-expanded', String(visible));
-            };
-
-            colorInput.addEventListener('input', () => {
-                settings.color = colorInput.value;
-                syncLabels();
-                draw();
-            });
-
-            opacityInput.addEventListener('input', () => {
-                settings.opacity = Number(opacityInput.value) / 100;
-                syncLabels();
-            });
-
-            cellSizeInput.addEventListener('input', () => {
-                settings.cellSize = Number(cellSizeInput.value);
-                syncLabels();
-                resize();
-            });
-
-            speedInput.addEventListener('input', () => {
-                settings.stepMs = prefersReducedMotion ? 1200 : Number(speedInput.value);
-                syncLabels();
-            });
-
-            densityInput.addEventListener('input', () => {
-                settings.density = Number(densityInput.value) / 100;
-                syncLabels();
-            });
-
-            resetButton.addEventListener('click', () => {
-                grid = createGrid();
-                draw();
-            });
-
-            hideButton.addEventListener('click', () => {
-                setControlsVisible(false);
-            });
-
-            toggleButton.addEventListener('click', () => {
-                setControlsVisible(controls.hidden);
-            });
-
-            window.addEventListener('resize', resize);
-            syncLabels();
-            resize();
-            animationFrame = requestAnimationFrame(animate);
-
-            window.addEventListener('beforeunload', () => {
-                cancelAnimationFrame(animationFrame);
-            });
-        })();
-    </script>
+  <footer class="foot">
+    <span class="label">© 2026 Ryan Lagasse</span>
+    <span class="label"><a href="https://github.com/RyanLagasse" target="_blank" rel="noopener">github</a> · <a href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank" rel="noopener">scholar</a> · <a href="https://www.linkedin.com/in/lagasse-ryan/" target="_blank" rel="noopener">linkedin</a></span>
+  </footer>
+</div>
+<script src="assets/patterns.js"></script>
+<script src="assets/crabs.js"></script>
 </body>
 </html>

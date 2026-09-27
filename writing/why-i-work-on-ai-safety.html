@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Why I work on AI safety · Ryan Lagasse</title>
+  <meta name="description" content="Some of my thoughts about AI safety, why I work on it, and what I wish people knew.">
+  <meta name="robots" content="noindex">
+  <script>try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/site.css">
+  <style>
+    .band { margin-top: 44px; position: relative; }
+    .band canvas { width: 100%; height: 150px; display: block; }
+    .band .label { position: absolute; right: 0; bottom: -22px; }
+
+    .head { margin-top: 52px; }
+    .head h1 { font-size: 34px; font-weight: 400; line-height: 1.15; letter-spacing: -0.012em; }
+    .head .meta { margin-top: 14px; }
+    .head .meta .draft { color: var(--accent); }
+
+    article { margin-top: 40px; position: relative; }
+    article p { margin-bottom: 22px; hyphens: auto; }
+    article p.dek { font-size: 22px; line-height: 1.5; color: var(--sub); font-style: italic; font-weight: 300; }
+    article .end { text-align: center; color: var(--dim); letter-spacing: 0.6em; margin: 44px 0 0; }
+
+    /* footnotes as margin notes on wide screens, tap-to-open on narrow */
+    .fn {
+      font-family: var(--mono); font-size: 11px; vertical-align: super; line-height: 0;
+      color: var(--accent); background: var(--accent-soft); border: 0; border-radius: 4px;
+      padding: 1px 4px; margin-left: 2px; cursor: pointer;
+    }
+    .note {
+      display: none; font-size: 15px; line-height: 1.5; color: var(--sub);
+      border-left: 2px solid var(--accent); padding: 4px 0 4px 14px; margin: -8px 0 22px;
+    }
+    .note b { font-family: var(--mono); font-weight: 500; font-size: 11px; color: var(--accent); margin-right: 6px; }
+    .note.open { display: block; }
+    .note ol { padding-left: 18px; margin-top: 4px; }
+    .note li { margin: 2px 0; }
+    @media (min-width: 1120px) {
+      .note {
+        display: block; position: absolute; right: -300px; width: 250px; margin: 0;
+        border-left: 1px solid var(--rule); font-size: 14px;
+      }
+    }
+
+    .back { margin-top: 64px; }
+    .back a { text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <a class="mark" href="../"><canvas aria-hidden="true"></canvas>Ryan Lagasse</a>
+    <span class="bar-r"><button class="crab-btn" type="button" data-crabs="../assets/crabs/" aria-label="Release the crabs" title="release the crabs"><img src="../assets/crabs/code.gif" width="80" height="80" alt=""></button><button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.4 5.4 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8C12.92 3.04 12.46 3 12 3z"/></svg></button></span>
+  </header>
+
+  <div class="band">
+    <canvas data-ca="auto" data-seed="why-i-work-on-ai-safety" data-cell="5" data-reveal aria-hidden="true"></canvas>
+    <span class="label" data-ca-caption></span>
+  </div>
+
+  <div class="head">
+    <h1>Why I work on AI safety</h1>
+    <div class="meta label"><span class="draft">draft</span> · September 2026 · 6 min</div>
+  </div>
+
+  <article>
+    <p class="dek">I thought I would write up some of my thoughts about AI safety, why I work on it, and what I wish people knew.</p>
+
+    <p>I work on interpretability (“interp”) research because I find a certain allure and beauty in trying to understand llms and their alien biology. Many things about interp are so wonderfully elegant!<button class="fn" type="button" data-fn="1">1</button> Interp is also a field where as long as you are creative enough to find some way to get compute (tho increasingly less so!) you can do research by yourself and make meaningful progress because so much is unknown.</p>
+    <aside class="note" id="fn-1"><b>1</b>Some examples:
+      <ol>
+        <li><a href="https://arxiv.org/abs/2301.05217" target="_blank" rel="noopener">Neel Nanda on grokking modular arithmetic</a></li>
+        <li><a href="https://transformer-circuits.pub/2025/attribution-graphs/biology.html" target="_blank" rel="noopener">On the Biology of a Large Language Model</a></li>
+        <li><a href="https://transformer-circuits.pub/2022/toy_model/index.html" target="_blank" rel="noopener">Toy Models of Superposition</a></li>
+      </ol>
+    </aside>
+
+    <p>I am also motivated by my belief that AI is going to be one of the biggest challenges we face as a species. I do not know what impact it will have - in fact I was very bearish that the llm architecture would scale to be able to self improve to become smarter than all humans as late as 2025 more than a year after I switched my focus of research to llms full time.<button class="fn" type="button" data-fn="2">2</button> At the time this was a very unpopular opinion in research circles. My concerns then have been addressed and now I do believe LLMs will be able to kick off autonomous self improvement, however, I was wrong about how far LLMs would get at this pace and I remain uncertain. I think there are a lot of time frames and possible outcomes and all of them are better with better understanding of how to understand and align AI models. I have always been and continue to remain uncertain about what LLMs are going to become, learning to control what we have now is the best chance we have of being able to control future AI systems.</p>
+    <aside class="note" id="fn-2"><b>2</b>The reason for this is primarily (A) my uncertainty that synthetic data would scale well to get larger models, (B) my uncertainty that a large public buy in would continue to fuel the trends of LLM development, (C) my concern that memory collapse and model collapse on long tasks would prove hard to solve, and (D) my concern that llms would have massive disparities in learning new domains.</aside>
+
+    <p>We may get super intelligent AI systems in 2 years or 20. We may not get it at all. I find the latter very unlikely given strong suggestive evidence to the positive in current scaling trends, but will not posit to know if there is a massive unforeseen plateau tho we have no indication that that would be the case - in fact we have really just started hitting our stride with being able to generate massive amounts of new and very high quality data, which had been one of the biggest hurdles while algorithmic speedups proceed. I have no good answer for the economic or global power questions this raises should trends continue. I feel far more confident commenting on my firsthand experience working with high quality data at scale. The way we currently generate high quality data through model trial and error in environments has made AI extremely good at finding solutions to problems in the easiest way the AI can find - which is not always (and at that usually not) what we intend. An example of this may be hacking a database where the answers are to steal the answers instead of solving the problems themselves<button class="fn" type="button" data-fn="3">3</button> (which happened!). AI can simply just be used for bad purposes as well. There are significant concerns others have raised around hacking and the threat of developing dangerous weapons. Bioweapons I believe to be a real risk but am not an expert on. Hacking I am far more privy to and everyday I get to observe the insane exploits AI systems find and the recent hacking of the Australian government, Alibaba, OpenAI, and HuggingFace reinforce this is already dangerous!</p>
+    <aside class="note" id="fn-3"><b>3</b><a href="https://www.redwoodresearch.org/research/hugging-face-incident#core-takeaways-about-this-incident" target="_blank" rel="noopener">Redwood Research on the Hugging Face hack</a>.</aside>
+
+    <p>There are many possible solutions to the problems above many of which I do not work on (namely policy work and control research). A core observation I have about the world is people who go deep and do not easily let themselves switch their primary focus tend to do far better. For now, my focus is interp/alignment. The 2 things I care the most about right now are (1) negative alignment taxes and (2) doing our best to equip the current frontier models with the tools to audit and align its descendants.</p>
+
+    <p>Negative alignment taxes is the idea that research that makes models safer will make AI models smarter and more capable and that safety is something companies should invest significantly more resources to because it will pay for itself thus promoting more safety work. This is likely the largest lever for people who care about safety to influence the frontier directly + creates a competitive advantage to safety. Unfortunately, many of these benefits are indirect, like fewer costly failures, less time spent debugging strange behavior, or most critically (and most underappreciated) understanding nuance and being controllable. So safety work stays underfunded even when judged purely on capability returns.</p>
+
+    <p>I think the most realistic scenario where we do end up controlling AI once it takes over its own training entirely is creating an AI that is the best equipped we can make it for auditing and aligning future models. There are some other theories that exist, however, none seem especially realistic to me as of now - tho I remain high in uncertainty given the countless unknowns. In this scenario we likely will struggle to comprehend what the new AIs are doing because it is extremely complex. Even now it is impossible to read all of the data we are generating or to even monitor all of the decisions being made in AI training. We struggle to understand how what we have works now or what it is thinking. While reading what the model says is the current best way to understand them, interp work is showing increasing promise as a surgical tool to find hidden objectives and better understand why they exist.<button class="fn" type="button" data-fn="4">4</button></p>
+    <aside class="note" id="fn-4"><b>4</b><a href="https://www.anthropic.com/research/auditing-hidden-objectives" target="_blank" rel="noopener">Anthropic's work on misalignment discovery</a>.</aside>
+
+    <p>In the last few months myself and other researchers have noticed frontier models are far better at talking to themselves than they are with humans. This is rather unsurprising because so much of their training is generated and overseen by the AI that is training as it learns to work with other versions of itself to solve tasks and very little of the training is with humans which is only going to become a smaller fraction. I suspect from here the % of AI to AI interactions vs human to AI interactions will only increase and it is becoming increasingly clear that AI is better at talking to itself than us and will likely grow to become far better at understanding itself than we ever will be independent of how good it is at talking to us. Currently almost all training related engineering is done by AI systems with humans using AI to monitor and intervening + making big decisions themselves. There are just too many decisions to make for humans to be making or even directly overseeing the vast majority of them. All of the hacks I listed above from the Australian Government to Alibaba and OpenAI happened because of failures in AI overseeing its development process (though there were multiple failures any one of these safeguards working should have been enough to catch it). I want the AIs supervising and aligning the next model to be as good as possible so we can study all facets of alignment with the best tools now while we have a window where we are very certain there is meaningful progress to make. Interp tools are going to be a necessary part of that arsenal if we ever hope to understand the machines we are building.</p>
+
+    <p>I take great inspiration from Chris Olah. I agree with him that alarmism is certainly bad when it is not predicated with the needed uncertainty and that nuance + appreciating is how we thrive.</p>
+
+    <p>I am generally positive about the future! I really enjoy my work and I do hope things all work out. I wish more people quantified their uncertainty around AI and treated the world as a more philosophical and intriguing place. Rare is it we predict the future accurately and even rarer yet is it a binary, yet we get the joy of nuance and intrigue everyday.</p>
+
+    <p class="end">· · ·</p>
+  </article>
+
+  <p class="back label"><a href="../#writing">← all writing</a></p>
+
+  <footer class="foot">
+    <span class="label">© 2026 Ryan Lagasse</span>
+    <span class="label"><a href="mailto:ryanplagasse@gmail.com">reply by email</a></span>
+  </footer>
+</div>
+<script src="../assets/patterns.js"></script>
+<script src="../assets/crabs.js"></script>
+<script>
+  // Place each margin note beside the sentence that cites it; on narrow screens a tap toggles it inline.
+  const place = () => {
+    const wide = matchMedia('(min-width: 1120px)').matches, art = document.querySelector('article');
+    let floor = 0;
+    document.querySelectorAll('.fn').forEach(b => {
+      const n = document.getElementById('fn-' + b.dataset.fn);
+      if (!wide) { n.style.top = ''; return; }
+      const top = Math.max(b.getBoundingClientRect().top - art.getBoundingClientRect().top - 6, floor);
+      n.style.top = top + 'px'; floor = top + n.offsetHeight + 16;
+    });
+  };
+  document.querySelectorAll('.fn').forEach(b => b.addEventListener('click', () => {
+    if (!matchMedia('(min-width: 1120px)').matches) document.getElementById('fn-' + b.dataset.fn).classList.toggle('open');
+  }));
+  addEventListener('resize', place); document.fonts.ready.then(place); place();
+</script>
+</body>
+</html>
