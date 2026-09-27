@@ -1,635 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ryan Lagasse</title>
-    <meta name="description" content="Ryan Lagasse: interpretability and safety research at d_model. Mechanistic understanding, autointerpretability, and negative alignment taxes.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ryan Lagasse</title>
+  <meta name="description" content="Ryan Lagasse. I try to understand what is going on inside language models, and I work on making them safe.">
+  <script>try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/site.css">
+  <style>
+    .hello { margin-top: 72px; }
+    .hello h1 { font-size: 21px; font-weight: 500; letter-spacing: -0.005em; margin-bottom: 18px; }
+    .hello p { color: var(--ink); margin-bottom: 14px; }
+    .hello p.soft { color: var(--sub); }
 
-        :root {
-            --cream: #f3f1e8;
-            --cream-2: #faf9f3;
-            --card: #fbfaf5;
-            --line: #dcd7c8;
-            --line-soft: #e8e4d8;
-            --ink: #23201b;
-            --sub: #5c584f;
-            --dim: #8a857a;
-            --pink: #d4537e;
-            --pink-bg: #f6e2e9;
-            --green: #1d9e75;
-            --green-bg: #dcefe6;
-            --violet: #7f77dd;
-            --violet-bg: #e6e3f6;
-            --blue: #2f6fb0;
-            --blue-bg: #dde7f3;
-            --orange: #d0761c;
-            --orange-bg: #f6e3cf;
-            --gold: #b0872e;
-            --gold-bg: #f5e9c8;
-            --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
-        }
+    /* the one big visual */
+    .window { margin: 44px 0 0; }
+    .window .frame {
+      position: relative; border: 1px solid var(--rule); border-radius: 14px; overflow: hidden;
+      background: var(--paper-2); aspect-ratio: 16 / 9;
+    }
+    #life { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
+    .window .under { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 12px; }
+    .window .under button {
+      font: inherit; background: none; border: 0; color: var(--dim); cursor: pointer; padding: 0; margin-left: 14px;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .window .under button:hover { color: var(--accent); }
+    .window .under > span:last-child { white-space: nowrap; }
+    @media (max-width: 520px) { .window .under .hint { display: none; } }
 
-        html { scroll-behavior: smooth; }
+    section.block { margin-top: 72px; }
+    section.block > .label { display: block; margin-bottom: 18px; }
 
-        body {
-            font-family: Inter, system-ui, -apple-system, sans-serif;
-            background: var(--cream);
-            color: var(--ink);
-            font-size: 16px;
-            line-height: 1.65;
-            -webkit-font-smoothing: antialiased;
-            position: relative;
-        }
+    /* writing list */
+    .posts { list-style: none; }
+    .post a {
+      display: grid; grid-template-columns: 76px 1fr; gap: 18px; align-items: center;
+      text-decoration: none; padding: 14px 0; border-top: 1px solid var(--rule);
+    }
+    .post:last-child a { border-bottom: 1px solid var(--rule); }
+    .post canvas { width: 76px; height: 48px; display: block; border-radius: 6px; background: var(--paper-2); }
+    .post .t { font-size: 19px; line-height: 1.35; }
+    .post .d { color: var(--sub); font-size: 16px; line-height: 1.45; margin-top: 3px; }
+    .post .m { margin-top: 6px; }
+    .post a:hover .t { color: var(--accent); }
+    .draft { color: var(--accent); }
 
-        h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 300; letter-spacing: -0.01em; }
-        a { color: inherit; }
-
-        /* ---- background texture: Game of Life ---- */
-        #life-background {
-            position: fixed;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.035;
-        }
-        .page { position: relative; z-index: 1; }
-
-        /* ---- nav ---- */
-        header.top {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 12px 28px;
-            background: rgba(250, 249, 243, 0.86);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid var(--line);
-        }
-        .wordmark {
-            font-size: 0.78rem;
-            font-weight: 700;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-        .wordmark b { color: var(--pink); font-weight: 700; }
-        nav.top-nav { margin-left: auto; display: flex; gap: 4px; flex-wrap: wrap; }
-        nav.top-nav a {
-            text-decoration: none;
-            font-size: 0.86rem;
-            font-weight: 500;
-            padding: 6px 13px;
-            border-radius: 999px;
-            transition: all .15s;
-        }
-        nav.top-nav a:hover { color: var(--pink); background: var(--pink-bg); }
-
-        main { max-width: 1040px; margin: 0 auto; padding: 0 28px 72px; }
-        section { padding: 64px 0; border-top: 1px solid var(--line); }
-        section:first-of-type { border-top: 0; }
-
-        /* ---- hero ---- */
-        .hero {
-            display: grid;
-            grid-template-columns: 1.05fr 0.95fr;
-            gap: 32px;
-            align-items: center;
-            padding: 56px 0 48px;
-            position: relative;
-        }
-        .hero::before {
-            content: "";
-            position: absolute;
-            inset: 0 -28px;
-            background-image: radial-gradient(var(--line) 1px, transparent 1.2px);
-            background-size: 22px 22px;
-            -webkit-mask-image: radial-gradient(70% 80% at 60% 50%, #000 30%, transparent 100%);
-            mask-image: radial-gradient(70% 80% at 60% 50%, #000 30%, transparent 100%);
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        .hero > * { position: relative; }
-        .eyebrow {
-            font-family: var(--mono);
-            font-size: 0.72rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--dim);
-            margin-bottom: 14px;
-        }
-        .eyebrow i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--pink); margin-right: 8px; vertical-align: 1px; }
-        .hero h1 { font-size: 2.75rem; line-height: 1.08; margin-bottom: 14px; }
-        .hero .lede { font-size: 1.05rem; color: var(--sub); max-width: 480px; }
-        .hero .lede strong { color: var(--ink); font-weight: 500; }
-        .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            border: 1px solid var(--line);
-            background: rgba(255, 255, 255, 0.45);
-            border-radius: 999px;
-            padding: 8px 16px;
-            font-size: 0.84rem;
-            font-weight: 500;
-            text-decoration: none;
-            transition: all .18s;
-        }
-        .pill:hover { border-color: var(--pink); color: var(--pink); transform: translateY(-1px); }
-        .pill.primary { background: var(--pink); border-color: var(--pink); color: #fff; }
-        .pill.primary:hover { background: #c4466f; color: #fff; }
-        .pill svg { width: 15px; height: 15px; fill: currentColor; }
-
-        .knot-wrap { aspect-ratio: 1 / 1; max-height: 420px; width: 100%; position: relative; }
-        #knot { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-        .knot-caption {
-            position: absolute;
-            right: 6px;
-            bottom: 0;
-            font-family: var(--mono);
-            font-size: 0.66rem;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--dim);
-        }
-
-        /* ---- roles ---- */
-        .roles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
-        .chip {
-            font-size: 0.78rem;
-            padding: 5px 11px;
-            border-radius: 999px;
-            border: 1px solid var(--line);
-            background: var(--cream-2);
-            color: var(--sub);
-        }
-        .chip b { color: var(--ink); font-weight: 500; }
-
-        /* ---- section headings ---- */
-        .sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 8px; }
-        .sec-head h2 { font-size: 1.7rem; }
-        .sec-head .count { font-family: var(--mono); font-size: 0.72rem; color: var(--dim); letter-spacing: 0.06em; }
-        .sec-sub { color: var(--sub); max-width: 640px; }
-
-        /* ---- research cards ---- */
-        .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 30px; }
-        .card {
-            border: 1px solid var(--line);
-            background: var(--card);
-            border-radius: 16px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: border-color .18s, transform .18s;
-        }
-        .card:hover { border-color: var(--dim); transform: translateY(-2px); }
-        .tile { width: 100%; aspect-ratio: 16 / 9; display: block; background: var(--cream-2); border-bottom: 1px solid var(--line-soft); }
-        .card .body { padding: 18px 20px 20px; }
-        .card h3 { font-size: 1.22rem; font-weight: 400; margin-bottom: 6px; }
-        .card p { font-size: 0.9rem; color: var(--sub); }
-        .card p a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
-        .card p a:hover { text-decoration-color: var(--pink); color: var(--pink); }
-        .tag {
-            display: inline-block;
-            font-family: var(--mono);
-            font-size: 0.66rem;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            padding: 2px 8px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-        }
-        .tag.green { color: #1a6e54; background: var(--green-bg); }
-        .tag.violet { color: #4f4796; background: var(--violet-bg); }
-        .tag.pink { color: #a03b64; background: var(--pink-bg); }
-        .tag.blue { color: #27568a; background: var(--blue-bg); }
-        .tag.gold { color: #7a5d1a; background: var(--gold-bg); }
-        .tag.orange { color: #9c5613; background: var(--orange-bg); }
-
-        .focus {
-            margin-top: 34px;
-            padding: 22px 26px;
-            border-left: 2px solid var(--pink);
-            background: rgba(255, 255, 255, 0.35);
-            border-radius: 0 14px 14px 0;
-            font-family: Fraunces, Georgia, serif;
-            font-size: 1.15rem;
-            font-weight: 300;
-            line-height: 1.6;
-            max-width: 820px;
-        }
-        .focus strong { font-weight: 500; }
-        .focus a { color: var(--pink); text-decoration: none; border-bottom: 1px solid var(--pink-bg); }
-        .focus a:hover { border-bottom-color: var(--pink); }
-
-        /* ---- highlights ---- */
-        .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 18px 0 22px; font-size: 0.78rem; color: var(--sub); }
-        .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
-        .year-block { display: grid; grid-template-columns: 72px 1fr; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line-soft); }
-        .year-block:first-of-type { border-top: 0; }
-        .year { font-family: Fraunces, Georgia, serif; font-size: 1.6rem; font-weight: 300; color: var(--dim); line-height: 1.1; padding-top: 6px; }
-        .rows { display: grid; gap: 2px; }
-        .row {
-            display: grid;
-            grid-template-columns: 12px 56px 1fr auto;
-            gap: 12px;
-            align-items: start;
-            padding: 8px 12px;
-            border-radius: 10px;
-            transition: background .12s;
-        }
-        .row:hover { background: rgba(255, 255, 255, 0.5); }
-        .row .dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 8px; }
-        .row .when { font-family: var(--mono); font-size: 0.72rem; color: var(--dim); padding-top: 5px; letter-spacing: 0.02em; }
-        .row .what { font-size: 0.93rem; }
-        .row .tag { margin: 3px 0 0; }
-        .dot.paper { background: var(--green); }
-        .dot.role { background: var(--pink); }
-        .dot.award { background: var(--gold); }
-        .dot.teaching { background: var(--violet); }
-        .dot.demo { background: var(--blue); }
-        .note { font-size: 0.8rem; color: var(--dim); margin-top: 18px; }
-        .note a { color: var(--sub); }
-
-        /* ---- footer ---- */
-        footer {
-            border-top: 1px solid var(--line);
-            padding: 36px 0 0;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            font-size: 0.82rem;
-            color: var(--dim);
-        }
-        footer .links { display: flex; gap: 16px; flex-wrap: wrap; }
-        footer a { color: var(--sub); text-decoration: none; border-bottom: 1px solid var(--line); }
-        footer a:hover { color: var(--pink); border-color: var(--pink); }
-
-        @media (max-width: 860px) {
-            .hero { grid-template-columns: 1fr; gap: 12px; padding-top: 36px; }
-            .knot-wrap { max-height: 300px; order: -1; }
-            .cards { grid-template-columns: 1fr; }
-            .hero h1 { font-size: 2.3rem; }
-            .row { grid-template-columns: 12px 1fr; }
-            .row .when { grid-column: 2; padding-top: 0; }
-            .row .what { grid-column: 2; }
-            .row .tag { grid-column: 2; }
-            .year-block { grid-template-columns: 1fr; gap: 6px; }
-            .year { font-size: 1.3rem; }
-            header.top { padding: 10px 16px; gap: 10px; }
-            nav.top-nav a { font-size: 0.8rem; padding: 5px 9px; }
-            .wordmark { font-size: 0.7rem; letter-spacing: 0.16em; }
-            main { padding: 0 16px 56px; }
-            section { padding: 48px 0; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            html { scroll-behavior: auto; }
-            .card:hover, .pill:hover { transform: none; }
-        }
-    </style>
+    .elsewhere p { color: var(--sub); margin-bottom: 10px; }
+    .elsewhere p a { color: var(--ink); }
+  </style>
 </head>
 <body>
-<canvas id="life-background" aria-hidden="true"></canvas>
+<div class="wrap">
+  <header class="bar">
+    <a class="mark" href="./"><canvas aria-hidden="true"></canvas>Ryan Lagasse</a>
+    <span class="bar-r"><button class="crab-btn" type="button" data-crabs="assets/crabs/" aria-label="Release the crabs" title="release the crabs"><img src="assets/crabs/code.gif" width="80" height="80" alt=""></button><button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.4 5.4 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8C12.92 3.04 12.46 3 12 3z"/></svg></button></span>
+  </header>
 
-<div class="page">
-<header class="top">
-    <a class="wordmark" href="#top">Ryan <b>·</b> Lagasse</a>
-    <nav class="top-nav">
-        <a href="#research">Research</a>
-        <a href="#highlights">Highlights</a>
-        <a href="#contact">Contact</a>
-    </nav>
-</header>
-
-<main id="top">
-    <section class="hero">
-        <div>
-            <div class="eyebrow"><i></i>Interpretability &amp; safety research</div>
-            <h1>Ryan Lagasse</h1>
-            <p class="lede">
-                AI/ML research scientist. I work on <strong>understanding models mechanistically</strong>:
-                finding the structure inside them, scaling that understanding without a human in the loop,
-                and making safety something that pays for itself.
-            </p>
-            <div class="pills">
-                <a class="pill primary" href="https://cal.com/ryan-lagasse" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm-2 8h14v10H5V10z"/></svg>
-                    Book a meeting
-                </a>
-                <a class="pill" href="https://github.com/RyanLagasse" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                    GitHub
-                </a>
-                <a class="pill" href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24"><path d="M12 3 1 8l11 5 9-4.09V17h2V8L12 3zM3.27 8.94 12 13l8.73-4.06L12 4.94 3.27 8.94zM11 14.97v3.51l1 .5 1-.5v-3.51L12 16l-1-1.03z"/></svg>
-                    Scholar
-                </a>
-                <a class="pill" href="https://www.linkedin.com/in/lagasse-ryan/" target="_blank" rel="noopener">
-                    <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                    LinkedIn
-                </a>
-                <a class="pill" href="mailto:ryanplagasse@gmail.com">
-                    <svg viewBox="0 0 24 24"><path d="M0 3v18h24v-18h-24zm6.623 7.929l-4.623 5.712v-9.458l4.623 3.746zm-4.141-5.929h19.035l-9.517 7.713-9.518-7.713zm5.694 7.188l3.824 3.099 3.83-3.104 5.612 6.817h-18.779l5.513-6.812zm9.208-1.264l4.616-3.741v9.348l-4.616-5.607z"/></svg>
-                    Email
-                </a>
-            </div>
-            <div class="roles">
-                <span class="chip"><b>Interp &amp; Safety Research</b> · d_model</span>
-                <span class="chip"><b>Head of Research</b> · Algoverse AI Research</span>
-                <span class="chip">SPAR Fellow</span>
-                <span class="chip">Berkeley AI Policy Fellow</span>
-                <span class="chip">BlueDot Fellow</span>
-            </div>
-        </div>
-        <div class="knot-wrap">
-            <canvas id="knot" aria-hidden="true"></canvas>
-            <span class="knot-caption">a curve, depth-coloured</span>
-        </div>
+  <main>
+    <section class="hello">
+      <h1>Hi, I'm Ryan.</h1>
+      <p>I try to understand what is actually going on inside language models, their strange and alien biology, and I work on making them safe. Currently I am an interpretability and alignment researcher at d_model.</p>
+      <p class="soft">I love patterns everywhere, from nature and history to books and math. Here is one of my favorites.</p>
     </section>
 
-    <section id="research">
-        <div class="sec-head"><h2>What I work on</h2><span class="count">3 threads</span></div>
-        <p class="sec-sub">Three questions I keep coming back to, from the object being studied to the incentive that decides whether anyone adopts the answer.</p>
+    <figure class="window">
+      <div class="frame"><canvas id="life" aria-label="Conway's Game of Life. Click or drag to add cells."></canvas></div>
+      <figcaption class="under label">
+        <span>Conway's life · gen <span id="life-gen">0000</span><span class="hint"> · draw on it</span></span>
+        <span><button id="life-pause" type="button">pause</button><button id="life-reset" type="button">reseed</button></span>
+      </figcaption>
+    </figure>
 
-        <div class="cards">
-            <a class="card" href="#highlights" style="text-decoration:none">
-                <canvas class="tile" data-tile="graph" aria-hidden="true"></canvas>
-                <div class="body">
-                    <span class="tag green">mechanistic</span>
-                    <h3>What is the structure?</h3>
-                    <p>Not just observing that a model works, but knowing why. Circuits, neurons, and the geometry of the features they compute.</p>
-                </div>
-            </a>
-            <a class="card" href="#highlights" style="text-decoration:none">
-                <canvas class="tile" data-tile="grid" aria-hidden="true"></canvas>
-                <div class="body">
-                    <span class="tag violet">autointerp</span>
-                    <h3>Does it scale?</h3>
-                    <p>Understanding models from the inside without a human in the loop for every feature. Approaches that get cheaper as models get bigger.</p>
-                </div>
-            </a>
-            <a class="card" href="https://www.lesswrong.com/posts/xhLopzaJHtdkz9siQ/the-case-for-a-negative-alignment-tax" target="_blank" rel="noopener" style="text-decoration:none">
-                <canvas class="tile" data-tile="curves" aria-hidden="true"></canvas>
-                <div class="body">
-                    <span class="tag pink">theory of change</span>
-                    <h3>Does it pay for itself?</h3>
-                    <p>Negative alignment taxes: safety properties that make a system more capable, not less, so labs adopt them because they work.</p>
-                </div>
-            </a>
-        </div>
-
-        <p class="focus">
-            My north star is to <strong>help AGI go well</strong>. I think the most direct path runs through
-            <a href="https://www.lesswrong.com/posts/xhLopzaJHtdkz9siQ/the-case-for-a-negative-alignment-tax" target="_blank" rel="noopener">negative alignment taxes</a>:
-            safety that labs adopt because it works, not out of goodwill. Mechanistic understanding that scales is how we get there.
-        </p>
+    <section class="block" id="writing">
+      <span class="label">Writing</span>
+      <ul class="posts">
+        <li class="post">
+          <a href="writing/why-i-work-on-ai-safety.html">
+            <canvas data-ca="auto" data-seed="why-i-work-on-ai-safety" data-cell="3" aria-hidden="true"></canvas>
+            <div>
+              <div class="t">Why I work on AI safety</div>
+              <div class="d">The beauty of interp, what worries me, and the two things I care about most right now.</div>
+              <div class="m label"><span class="draft">draft</span> · Sep 2026</div>
+            </div>
+          </a>
+        </li>
+      </ul>
     </section>
 
-    <section id="highlights">
-        <div class="sec-head"><h2>Highlights</h2><span class="count">2023 → 2025</span></div>
-        <p class="sec-sub">Papers, roles, and the occasional hackathon. Colour is the kind of thing it was.</p>
-        <div class="legend">
-            <span><i style="background:var(--green)"></i>paper</span>
-            <span><i style="background:var(--pink)"></i>role</span>
-            <span><i style="background:var(--gold)"></i>award</span>
-            <span><i style="background:var(--blue)"></i>demo</span>
-            <span><i style="background:var(--violet)"></i>teaching</span>
-        </div>
-
-        <div class="year-block">
-            <div class="year">2025</div>
-            <div class="rows">
-                <div class="row"><span class="dot role"></span><span class="when">Dec</span><span class="what">AI/ML Research Scientist; founding member of the Future AI Research Team</span><span class="tag pink">role</span></div>
-                <div class="row"><span class="dot paper"></span><span class="when">Dec</span><span class="what">“Alignment-Constrained Pruning LLMs” accepted to DAI @ AAAI 2026</span><span class="tag green">paper</span></div>
-                <div class="row"><span class="dot paper"></span><span class="when">Sep</span><span class="what">“A Few Bad Neurons: Isolating and Surgically Correcting Sycophancy” accepted to CogInterp @ NeurIPS 2025</span><span class="tag green">paper</span></div>
-                <div class="row"><span class="dot paper"></span><span class="when">Sep</span><span class="what">“Circuit Discovery via Hybrid Attribution-Pruning Framework” accepted to MechInterp @ NeurIPS 2025</span><span class="tag green">paper</span></div>
-                <div class="row"><span class="dot paper"></span><span class="when">Sep</span><span class="what">“Active Inference Control: Steering, Not Just Scaling, Language Model Reasoning” accepted to Efficient Reasoning @ NeurIPS 2025</span><span class="tag green">paper</span></div>
-                <div class="row"><span class="dot paper"></span><span class="when">Aug</span><span class="what">“HalluTree: Explainable Multi-Hop Hallucination Detection” accepted to NewSumm @ EMNLP 2025</span><span class="tag green">paper</span></div>
-                <div class="row"><span class="dot role"></span><span class="when">Jul</span><span class="what">Promoted to Director at Algoverse AI Research</span><span class="tag pink">role</span></div>
-                <div class="row"><span class="dot paper"></span><span class="when">Jun</span><span class="what">“Iterative RAG with Semantic Entropy” accepted to VecDB @ ICML 2025</span><span class="tag green">paper</span></div>
-                <div class="row"><span class="dot role"></span><span class="when">May</span><span class="what">Joined Lockheed Martin AI Center full-time as AI/ML Research Engineer</span><span class="tag pink">role</span></div>
-                <div class="row"><span class="dot award"></span><span class="when">Apr</span><span class="what">Won track at Yale Quantum Hackathon</span><span class="tag gold">award</span></div>
-                <div class="row"><span class="dot award"></span><span class="when">Jan</span><span class="what">Selected as Berkeley AI Policy Fellow</span><span class="tag gold">award</span></div>
-                <div class="row"><span class="dot paper"></span><span class="when">Jan</span><span class="what">“Hybrid Quantum Algorithms for N-Body Simulations” accepted as an oral presentation at QCNC 2025</span><span class="tag green">paper</span></div>
-            </div>
-        </div>
-        <div class="year-block">
-            <div class="year">2024</div>
-            <div class="rows">
-                <div class="row"><span class="dot demo"></span><span class="when">Sep</span><span class="what">Led research for an autonomous UAV-UGV teaming demo at EDGE24 (100% field success rate)</span><span class="tag blue">demo</span></div>
-            </div>
-        </div>
-        <div class="year-block">
-            <div class="year">2023</div>
-            <div class="rows">
-                <div class="row"><span class="dot teaching"></span><span class="when">Dec</span><span class="what">Created and taught UConn’s “Intro to Transformers” course (CSE 4095)</span><span class="tag violet">teaching</span></div>
-            </div>
-        </div>
-
-        <p class="note">Last refreshed Dec 2025. For anything newer, <a href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank" rel="noopener">Scholar</a> and <a href="https://www.linkedin.com/in/lagasse-ryan/" target="_blank" rel="noopener">LinkedIn</a> are current.</p>
+    <section class="block elsewhere">
+      <span class="label">Elsewhere</span>
+      <p>Along the way I've done a bunch of things, including independent mech interp research, creating and teaching a course on transformers, and mentoring junior researchers.</p>
+      <p>Papers are on <a href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank" rel="noopener">Scholar</a>, code is on <a href="https://github.com/RyanLagasse" target="_blank" rel="noopener">GitHub</a>. If something here makes sense to you, <a href="mailto:ryanplagasse@gmail.com">write to me</a> or <a href="https://cal.com/ryan-lagasse" target="_blank" rel="noopener">grab a time</a>.</p>
     </section>
+  </main>
 
-    <footer id="contact">
-        <span>© 2026 Ryan Lagasse</span>
-        <span class="links">
-            <a href="mailto:ryanplagasse@gmail.com">ryanplagasse@gmail.com</a>
-            <a href="https://cal.com/ryan-lagasse" target="_blank" rel="noopener">cal.com</a>
-            <a href="https://github.com/RyanLagasse" target="_blank" rel="noopener">github</a>
-        </span>
-    </footer>
-</main>
+  <footer class="foot">
+    <span class="label">© 2026 Ryan Lagasse</span>
+    <span class="label"><a href="https://github.com/RyanLagasse" target="_blank" rel="noopener">github</a> · <a href="https://scholar.google.com/citations?user=QK2Md6wAAAAJ&hl=en" target="_blank" rel="noopener">scholar</a> · <a href="https://www.linkedin.com/in/lagasse-ryan/" target="_blank" rel="noopener">linkedin</a></span>
+  </footer>
 </div>
-
-<script>
-(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const PINK = [212, 83, 126], GREEN = [29, 158, 117], VIOLET = [127, 119, 221], BLUE = [47, 111, 176], LINE = '#dcd7c8';
-    const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
-    const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
-
-    // Size a canvas to its CSS box at device pixel ratio. Returns [ctx, w, h].
-    const fit = (c) => {
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        const w = c.clientWidth, h = c.clientHeight;
-        c.width = Math.max(1, Math.round(w * dpr));
-        c.height = Math.max(1, Math.round(h * dpr));
-        const x = c.getContext('2d');
-        x.setTransform(dpr, 0, 0, dpr, 0, 0);
-        return [x, w, h];
-    };
-
-    /* ---------- hero: 3D Lissajous knot, depth-coloured ---------- */
-    (() => {
-        const c = document.getElementById('knot');
-        if (!c) return;
-        const N = 1600, TAU = Math.PI * 2;
-        const a = 3, b = 4, cc = 5, phase = Math.PI / 3, tilt = 0.55;
-        const ct = Math.cos(tilt), st = Math.sin(tilt);
-        let yaw = 0.3, ctx, W, H;
-        const size = () => { [ctx, W, H] = fit(c); };
-        const frame = () => {
-            ctx.clearRect(0, 0, W, H);
-            const cx = W * 0.5, cy = H * 0.5, sc = Math.min(W, H) * 0.4;
-            const cw = Math.cos(yaw), sw = Math.sin(yaw);
-            ctx.lineWidth = 1.7; ctx.lineCap = 'round';
-            let prev = null;
-            for (let i = 0; i <= N; i++) {
-                const t = i / N * TAU;
-                const X = Math.sin(a * t + phase), Y = Math.sin(b * t), Z = Math.sin(cc * t);
-                const x1 = X * cw - Z * sw, z1 = X * sw + Z * cw;
-                const y2 = Y * ct - z1 * st, z2 = Y * st + z1 * ct;
-                const sx = cx + x1 * sc, sy = cy - y2 * sc;
-                const d = Math.max(0, Math.min(1, (z2 + 1.3) / 2.6));
-                if (prev) {
-                    const col = d < 0.5 ? mix(PINK, VIOLET, d * 2) : mix(VIOLET, GREEN, (d - 0.5) * 2);
-                    ctx.strokeStyle = rgba(col, 0.25 + 0.6 * d);
-                    ctx.beginPath(); ctx.moveTo(prev[0], prev[1]); ctx.lineTo(sx, sy); ctx.stroke();
-                }
-                prev = [sx, sy];
-            }
-        };
-        size(); frame();
-        window.addEventListener('resize', () => { size(); frame(); });
-        if (!reduced) (function loop() { yaw += 0.005; frame(); requestAnimationFrame(loop); })();
-    })();
-
-    /* ---------- research tiles ---------- */
-    const tiles = {
-        // clustered node graph: mechanistic structure
-        graph(c) {
-            const [x, W, H] = fit(c);
-            const rand = mulberry(7);
-            const groups = [
-                { col: GREEN, n: 7, cx: .28, cy: .5 }, { col: VIOLET, n: 5, cx: .58, cy: .32 },
-                { col: PINK, n: 6, cx: .74, cy: .68 }, { col: BLUE, n: 5, cx: .48, cy: .74 }
-            ];
-            const pts = [];
-            groups.forEach(g => { for (let i = 0; i < g.n; i++) {
-                const a = rand() * 6.28, r = Math.pow(rand(), 0.6) * Math.min(W, H) * 0.24;
-                pts.push({ x: g.cx * W + Math.cos(a) * r, y: g.cy * H + Math.sin(a) * r, g, r: 2.5 + rand() * 3.5 });
-            }});
-            x.clearRect(0, 0, W, H);
-            for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) {
-                const p = pts[i], q = pts[j], d = Math.hypot(p.x - q.x, p.y - q.y), near = p.g === q.g ? 80 : 55;
-                if (d < near) {
-                    x.strokeStyle = p.g === q.g ? rgba(p.g.col, 0.35 * (1 - d / near)) : rgba([154, 154, 144], 0.15 * (1 - d / near));
-                    x.lineWidth = p.g === q.g ? 1 : 0.7;
-                    x.beginPath(); x.moveTo(p.x, p.y); x.lineTo(q.x, q.y); x.stroke();
-                }
-            }
-            pts.forEach(p => { x.beginPath(); x.arc(p.x, p.y, p.r, 0, 6.29); x.fillStyle = rgba(p.g.col, 1); x.fill(); x.lineWidth = 1.2; x.strokeStyle = '#faf9f3'; x.stroke(); });
-        },
-        // activation grid that slowly breathes: autointerp at scale
-        grid(c) {
-            let ctx, W, H, t = 0;
-            const rand = mulberry(3);
-            const cols = 22, rows = 12;
-            const seeds = Array.from({ length: cols * rows }, () => rand() * 6.28);
-            const draw = () => {
-                ctx.clearRect(0, 0, W, H);
-                const cw = W / cols, ch = H / rows;
-                for (let r = 0; r < rows; r++) for (let k = 0; k < cols; k++) {
-                    const s = seeds[r * cols + k];
-                    const v = 0.5 + 0.5 * Math.sin(s + t + k * 0.35 - r * 0.2);
-                    const on = v > 0.8;
-                    ctx.fillStyle = on ? rgba(VIOLET, 0.2 + 0.7 * (v - 0.8) / 0.2) : rgba([220, 215, 200], 0.4);
-                    const pad = on ? 1.5 : 3;
-                    ctx.fillRect(k * cw + pad, r * ch + pad, cw - pad * 2, ch - pad * 2);
-                }
-            };
-            const size = () => { [ctx, W, H] = fit(c); draw(); };
-            size(); window.addEventListener('resize', size);
-            if (!reduced) (function loop() { t += 0.012; draw(); requestAnimationFrame(loop); })();
-        },
-        // two curves rising together: capability and safety, no tax
-        curves(c) {
-            const [x, W, H] = fit(c);
-            x.clearRect(0, 0, W, H);
-            const m = 18;
-            // faint grid
-            x.strokeStyle = LINE; x.lineWidth = 1;
-            for (let i = 1; i < 5; i++) { const y = m + (H - 2 * m) * i / 5; x.beginPath(); x.moveTo(m, y); x.lineTo(W - m, y); x.stroke(); }
-            const path = (f, col, w) => {
-                x.beginPath();
-                for (let i = 0; i <= 100; i++) {
-                    const u = i / 100, px = m + u * (W - 2 * m), py = H - m - f(u) * (H - 2 * m);
-                    i ? x.lineTo(px, py) : x.moveTo(px, py);
-                }
-                x.strokeStyle = col; x.lineWidth = w; x.lineCap = 'round'; x.stroke();
-            };
-            // "tax" baseline: capability alone
-            path(u => 0.08 + 0.55 * Math.pow(u, 1.6), rgba([138, 133, 122], 0.5), 1.2);
-            // negative-tax: safety and capability together, above the baseline
-            path(u => 0.10 + 0.78 * Math.pow(u, 1.25), rgba(PINK, 0.95), 2.2);
-            path(u => 0.05 + 0.6 * Math.pow(u, 1.15) + 0.06 * Math.sin(u * 9), rgba(BLUE, 0.8), 1.6);
-            // end dots
-            const end = (f, col) => { x.beginPath(); x.arc(W - m, H - m - f(1) * (H - 2 * m), 3.5, 0, 6.29); x.fillStyle = col; x.fill(); };
-            end(u => 0.10 + 0.78, rgba(PINK, 1)); end(u => 0.05 + 0.6 + 0.06 * Math.sin(9), rgba(BLUE, 1));
-        }
-    };
-    function mulberry(seed) { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
-    document.querySelectorAll('canvas[data-tile]').forEach(c => {
-        const kind = c.dataset.tile;
-        tiles[kind](c);
-        if (kind !== 'grid') window.addEventListener('resize', () => tiles[kind](c));
-    });
-
-    /* ---------- background: Game of Life ---------- */
-    (() => {
-        const canvas = document.getElementById('life-background');
-        const ctx = canvas.getContext('2d');
-        const cell = 14, stepMs = reduced ? 1400 : 120, density = 0.15;
-        let cols = 0, rows = 0, grid = [], next = [], last = 0;
-        const make = () => Array.from({ length: rows }, () => Array.from({ length: cols }, () => Math.random() < density ? 1 : 0));
-        const resize = () => {
-            const dpr = window.devicePixelRatio || 1;
-            cols = Math.ceil(window.innerWidth / cell); rows = Math.ceil(window.innerHeight / cell);
-            canvas.width = Math.ceil(window.innerWidth * dpr); canvas.height = Math.ceil(window.innerHeight * dpr);
-            canvas.style.width = window.innerWidth + 'px'; canvas.style.height = window.innerHeight + 'px';
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            grid = make(); next = make(); draw();
-        };
-        const evolve = () => {
-            for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) {
-                let n = 0;
-                for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-                    if (dx || dy) n += grid[(y + dy + rows) % rows][(x + dx + cols) % cols];
-                }
-                next[y][x] = grid[y][x] ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
-            }
-            [grid, next] = [next, grid];
-        };
-        const draw = () => {
-            ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
-            ctx.fillStyle = '#564130';
-            let alive = 0;
-            for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (grid[y][x]) {
-                alive++;
-                ctx.fillRect(x * cell + 1, y * cell + 1, cell - 2, cell - 2);
-            }
-            if (alive < cols * rows * 0.04) grid = make();
-        };
-        const animate = (ts) => {
-            if (ts - last > stepMs) { evolve(); draw(); last = ts; }
-            requestAnimationFrame(animate);
-        };
-        window.addEventListener('resize', resize);
-        resize();
-        requestAnimationFrame(animate);
-    })();
-})();
-</script>
+<script src="assets/patterns.js"></script>
+<script src="assets/crabs.js"></script>
 </body>
 </html>
