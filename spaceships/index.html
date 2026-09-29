@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spaceships · Ryan Lagasse</title>
+  <meta name="description" content="Spaceships in Conway's Game of Life that turned up in my search, three of them never seen in a soup before, running live.">
+  <script>try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/site.css">
+  <style>
+    /* this page is wider than the others so the ship panels can sit side by side */
+    .wrap.wide { max-width: 1080px; }
+    :root { --engine: #1d5c4f; --tail: #c2571d; --stage: #efece3; --panel: #fbfaf6; }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) { --engine: #5fc9ad; --tail: #f08a4b; --stage: #1f1e19; --panel: #1b1a15; }
+    }
+    :root[data-theme="dark"] { --engine: #5fc9ad; --tail: #f08a4b; --stage: #1f1e19; --panel: #1b1a15; }
+
+    .head { margin-top: 56px; max-width: 640px; }
+    .head h1 { font-size: 30px; font-weight: 400; letter-spacing: -0.01em; line-height: 1.15; }
+    .head p { margin-top: 14px; }
+    .head p.soft { color: var(--sub); }
+
+    .controls {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin: 32px 0 22px;
+      padding: 12px 14px; border: 1px solid var(--rule); border-radius: 12px; background: var(--panel);
+    }
+    .controls button {
+      font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; color: var(--ink); background: none;
+      border: 1px solid var(--rule); border-radius: 999px; padding: 5px 12px; cursor: pointer;
+    }
+    .controls button:hover { border-color: var(--accent); color: var(--accent); }
+    .controls label { display: flex; align-items: center; gap: 8px; }
+    .controls input[type=range] { width: 130px; accent-color: var(--accent); }
+    .legend { display: flex; gap: 14px; margin-left: auto; flex-wrap: wrap; }
+    .legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; margin-right: 6px; border-radius: 2px; vertical-align: 0; }
+    .legend .e::before { background: var(--engine); }
+    .legend .t::before { background: var(--tail); }
+
+    .ships { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; align-items: start; }
+    .ship { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; min-width: 0; }
+    .ship h2 { font-size: 22px; font-weight: 400; line-height: 1.2; display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+    .badge { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+    .badge.new { color: var(--accent); }
+    .badge.known { color: var(--dim); }
+    .ship .tech { margin-top: 4px; }
+    .ship .front { color: var(--sub); font-size: 15px; margin: 6px 0 12px; }
+    .stage { display: flex; justify-content: center; background: var(--stage); border-radius: 8px; overflow: hidden; }
+    .stage canvas { display: block; max-width: 100%; height: auto; image-rendering: pixelated; }
+    .ship dl { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; margin-top: 12px; font-size: 14px; }
+    .ship dt { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--dim); padding-top: 2px; }
+    .ship dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+    .ship code { font-family: var(--mono); font-size: 11.5px; }
+    .ship .gen { margin-top: 10px; font-variant-numeric: tabular-nums; }
+
+    .note { margin-top: 28px; max-width: 720px; color: var(--sub); font-size: 15px; }
+    .back { margin-top: 40px; }
+    .back a { text-decoration: none; }
+
+    /* a faint Game of Life behind the whole page */
+    #bg-life { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.022; }
+    .wrap.wide { position: relative; z-index: 1; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #bg-life { opacity: 0.03; } }
+    :root[data-theme="dark"] #bg-life { opacity: 0.03; }
+  </style>
+</head>
+<body>
+<canvas id="bg-life" aria-hidden="true"></canvas>
+<div class="wrap wide">
+  <header class="bar">
+    <a class="mark" href="../"><canvas aria-hidden="true"></canvas>Ryan Lagasse</a>
+    <span class="bar-r"><button class="crab-btn" type="button" data-crabs="../assets/crabs/" aria-label="Release the crabs" title="release the crabs"><img src="../assets/crabs/code.gif" width="80" height="80" alt=""></button><button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.4 5.4 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8C12.92 3.04 12.46 3 12 3z"/></svg></button></span>
+  </header>
+
+  <div class="head">
+    <h1>Spaceships</h1>
+    <p>A spaceship in Conway's Game of Life is a pattern that rebuilds itself a little further along every few generations, so it glides across the grid forever. Here are some of my favorites, plus a cool rare oscillator.</p>
+    <p class="soft">Three of them had never come out of a soup on Catagolue, the shared census of Life objects, so I took it upon myself to give them funny names :). Everything travels upward, and the view follows along.</p>
+  </div>
+
+  <div class="controls">
+    <button id="play" type="button">Pause</button>
+    <button id="step" type="button">Step 1 gen</button>
+    <button id="reset" type="button">Reset</button>
+    <label class="label" for="speed">gens / s <input id="speed" type="range" min="1" max="60" value="8"> <span id="speedval">8</span></label>
+    <div class="legend label"><span class="e">engine (c/4 sub-ship)</span><span class="t">period-8 tail</span></div>
+  </div>
+
+  <div class="ships" id="ships"></div>
+
+  <p class="note">Speeds and periods were verified with lifelib, and novelty was checked against Catagolue object pages on 2026-09-27. "Unseen on Catagolue" means no sample soup has ever produced the object. It does not rule out an earlier search result posted elsewhere. Engine and tail colouring is by row in the co-moving frame, using the cut where the front alone is still a c/4 spaceship.</p>
+
+  <p class="back label"><a href="../">← home</a></p>
+
+  <footer class="foot">
+    <span class="label">© 2026 Ryan Lagasse</span>
+    <span class="label"><a href="mailto:ryanplagasse@gmail.com">found one too? write to me</a></span>
+  </footer>
+</div>
+<script src="../assets/patterns.js"></script>
+<script src="../assets/crabs.js"></script>
+<script>
+/* faint background Life: a random soup that keeps itself going */
+(function () {
+  const c = document.getElementById("bg-life"), ctx = c.getContext("2d");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const CELL = 14, STEP = reduced ? 1400 : 130, DENSITY = 0.16;
+  let cols = 0, rows = 0, a, b, last = 0;
+  const seed = () => { for (let i = 0; i < a.length; i++) a[i] = Math.random() < DENSITY ? 1 : 0; };
+  const size = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cols = Math.ceil(innerWidth / CELL); rows = Math.ceil(innerHeight / CELL);
+    c.width = Math.ceil(innerWidth * dpr); c.height = Math.ceil(innerHeight * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    a = new Uint8Array(cols * rows); b = new Uint8Array(cols * rows); seed(); draw();
+  };
+  const evolve = () => {
+    let alive = 0;
+    for (let y = 0; y < rows; y++) {
+      const up = ((y - 1 + rows) % rows) * cols, mid = y * cols, dn = ((y + 1) % rows) * cols;
+      for (let x = 0; x < cols; x++) {
+        const l = (x - 1 + cols) % cols, r = (x + 1) % cols;
+        const n = a[up + l] + a[up + x] + a[up + r] + a[mid + l] + a[mid + r] + a[dn + l] + a[dn + x] + a[dn + r];
+        const v = a[mid + x] ? (n === 2 || n === 3 ? 1 : 0) : (n === 3 ? 1 : 0);
+        b[mid + x] = v; alive += v;
+      }
+    }
+    [a, b] = [b, a];
+    if (alive < cols * rows * 0.04) seed();
+  };
+  const draw = () => {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--ink").trim();
+    for (let i = 0; i < a.length; i++) if (a[i]) ctx.fillRect((i % cols) * CELL + 1, ((i / cols) | 0) * CELL + 1, CELL - 2, CELL - 2);
+  };
+  const loop = (t) => { if (!document.hidden && t - last > STEP) { evolve(); draw(); last = t; } requestAnimationFrame(loop); };
+  addEventListener("resize", size);
+  new MutationObserver(draw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  size(); requestAnimationFrame(loop);
+})();
+</script>
+<script>
+(function () {
+  /* ---------------------------------------------------------------
+     THE SHIPS. To add one, copy an entry and fill it in.
+     nick:  the name, if it's mine to give (leave out for known objects)
+     name:  the plain technical name
+     rle:   the pattern in RLE; dy/period set how fast the view follows
+     cut:   row where the teal engine ends and the rust tail begins (null = all engine)
+     --------------------------------------------------------------- */
+  const SHIPS = [
+    { nick: "dart goblin", name: "2c/8 composite, 177 cells", code: "xq8_y06r232r6z0743p01110p347z37bs51x15sb73zw10u31013u01zw122ng0gn221zy0i2i0i2izw4qr97079rq4zx7rps0spr7zy1eg2gez6117x1x7116",
+      status: "new", statusText: "Unseen on Catagolue", speed: "2c/8", period: 8, dy: -2, minpop: 177, bbox: "15 x 47", cut: 28, front: "114-cell c/4 ship + 63-cell tail",
+      rle: "4b2obob2o$4bo2bo2bo$4bo2bo2bo$4b2o3b2o$5bobobo$3b9o$2ob2o2bo2b2ob2o$b3o7b3o$3bo7bo$bo2bo5bo2bo$obob2o3b2obobo$5bo3bo$o3bo5bo3bo2$3b2o5b2o$3bob2ob2obo$3b2obobob2o$3b2o5b2o$3b3o3b3o$3b3o3b3o$5bo3bo$3bob2ob2obo$5bo3bo$5b2ob2o2$4bo5bo$5bo3bo$5bo3bo2$4bobobobo$6bobo$3b2obobob2o$2bo3bobo3bo$2bo2bo3bo2bo$2bo9bo$2bo2bo3bo2bo$2bo9bo$3bo2bobo2bo$3bo7bo$4bobobobo$4bo2bo2bo$6bobo$4b2o3b2o$5b2ob2o$2bo3b3o3bo$b3o3bo3b3o$o2b2o5b2o2bo!" },
+    { nick: "totem man", name: "2c/8 composite, 218 cells", code: "xq8_8e6kws68goo80444k0473c0ik8o48wgccog04420co80ggo86901ecxozr0hwary4rrry4aa40rhweehwexhewhy4ve0vhz2ec5w7c213320444504so60952342w166310448063201132ci0ge6x3",
+      status: "new", statusText: "Unseen on Catagolue", speed: "2c/8", period: 8, dy: -2, minpop: 218, bbox: "15 x 61", cut: 47, front: "196-cell c/4 ship + 22-cell tail",
+      rle: "4b2obob2o$4bo2bo2bo$4bo2bo2bo$4b2o3b2o$5bobobo$3b9o$2ob2o2bo2b2ob2o$b2o9b2o2$bobo7bobo$bo2bo5bo2bo2$3bobo3bobo$5b2ob2o$4b3ob3o$7bo$4b2o3b2o$2b2obo3bob2o$2b2o2b3o2b2o$2b2o7b2o$b2o9b2o$6b3o2$4b2o3b2o$3b9o$3bo7bo$3bob5obo$4bob3obo$6b3o$6bobo$4bo5bo$3b2o5b2o$2bobo5bobo$b2ob7ob2o$b2o3bobo3b2o$2bobo5bobo2$bobo7bobo$bo11bo$o2bo7bo2bo$2b2o7b2o$b3o7b3o$2b2obo3bob2o$3b3o3b3o$bo4bobo4bo$bobo7bobo$2bo9bo2$3bo7bo$3b2o5b2o2$3b2o5b2o$2b3o5b3o$bo3b2ob2o3bo$bo4bobo4bo$6bobo$4bo5bo$2b2o7b2o$bo2b2o3b2o2bo$2b2obo3bob2o$2b4o3b4o!" },
+    { nick: "big cricket", name: "2c/8 composite, 305 cells", code: "xq8_y0fp070pfzx4l3s0s3l4z4212hs707sh2124z4vvy5vv4zx1ppxpp1zx5ly1l5z08eb11x11be8z0m4uy3u4mzbg2j32s0s23j2gbz1kk870v0v078kk1z1114p82028p4111zwc228c0c822czx9o1u0u1o9zw21s71017s12z01w7m040m7w1z0ggw1eee1wggz3413y33143",
+      status: "new", statusText: "Unseen on Catagolue", speed: "2c/8", period: 8, dy: -2, minpop: 305, bbox: "15 x 82", cut: 27, front: "100-cell c/4 ship + 237-cell tail",
+      rle: "5bobobo$4b7o$4bo5bo$5bo3bo$5bo3bo$3b2o5b2o$5bo3bo$3b2obobob2o$4bobobobo$3b2obobob2o$2bobobobobobo$bobo2bobo2bobo$b2o3bobo3b2o$b3o2bobo2b3o$2bobo5bobo$2bobo5bobo$bo11bo$bo11bo$bo3bo3bo3bo$2bo2bo3bo2bo$2bo9bo$4b2o3b2o2$4b2o3b2o$4bo5bo2$3b2o5b2o2$4bo5bo$4bo5bo$2b2ob2ob2ob2o2$2bo9bo$bobo7bobo$o3bo5bo3bo2$bo2bo5bo2bo$b3o7b3o2$b2o9b2o$b3o7b3o$o3b2o3b2o3bo$o5bobo5bo$6bobo$3obobobobob3o$4bobobobo$b2obobobobob2o$4bobobobo$2bobobobobobo$bo4bobo4bo$bo3b2ob2o3bo$o2bob2ob2obo2bo$4bo5bo$4b3ob3o2$4bo5bo$4bo5bo$2bo2b2ob2o2bo$2b4o3b4o$3bo7bo$3b3o3b3o$4bobobobo$4bobobobo$6bobo$3b2obobob2o$5bo3bo$2bo2bo3bo2bo$2b3o5b3o$b2obo5bob2o$b3o7b3o$b3o7b3o$2b2o7b2o$2b2o7b2o$3b3o3b3o$3b3obob3o$6bobo$4bob3obo$4bo5bo$4bo5bo$b3obo3bob3o$bo2bob3obo2bo$bob2o5b2obo!" },
+    { name: "2c/8 composite, 164 cells", code: "xq8_0oocadq0qdacoozgc013ot0to310cgz02ek4s8o8s4ke2zw1lky1kl1zxgjjxjjgz4vvy5vv4z48g8h7s0s7h8g84zx4lo707ol4zy0uj0s0ju",
+      status: "known", statusText: "Known, 3 Catagolue soups", speed: "2c/8", period: 8, dy: -2, minpop: 164, bbox: "15 x 45", cut: 26, front: "99-cell c/4 ship + 65-cell tail",
+      rle: "4b2obob2o$4bo2bo2bo$4bo2bo2bo$4b2o3b2o$5bo3bo$4b2o3b2o$5bo3bo$3b2obobob2o$6bobo$4bobobobo$2bobobobobobo$bobo2bobo2bobo$o4b2ob2o4bo$5bo3bo$4b2o3b2o$b2o9b2o$b2o9b2o$3o9b3o$b2o9b2o$b2o9b2o$3b3o3b3o3$4b2o3b2o$4b2o3b2o$3b2o5b2o2$3b2o5b2o2$2b2o7b2o$3bobobobobo$2bo2b5o2bo$2b4o3b4o$b2o9b2o2$o4b2ob2o4bo$bo3b2ob2o3bo$bo4bobo4bo$4bo5bo$3b2obobob2o$b2o3bobo3b2o$b6ob6o$3bobo3bobo$4bobobobo$5bo3bo!" },
+    { name: "2c/8 engine, 121 cells", code: "xq8_1263hoc6coh3621zxo60l2l06ozwvw2o0o2wvz0o0rjpxpjr0ozcfhi3108013ihfczxduik9kiud",
+      status: "known", statusText: "Known, 3 Catagolue soups", speed: "2c/8", period: 8, dy: -2, minpop: 121, bbox: "15 x 30", cut: null, front: "true period-8 engine, no detachable front",
+      rle: "4b3ob3o$3b2o2bo2b2o$3b2obobob2o$4b2o3b2o$3bo3bo3bo$2b2o7b2o$2o5bo5b2o$2o11b2o$bob2o5b2obo$b2ob2o3b2ob2o$bob3o3b3obo$bobobo3bobobo2$3b2o5b2o$3b3o3b3o$2bo3bobo3bo$2bo3bobo3bo$2bo9bo$2bo2bo3bo2bo$2bo9bo$3bo2bobo2bo$3bo7bo$4bobobobo$4bo2bo2bo$6bobo$4b2o3b2o$5b2ob2o$2bo3b3o3bo$b3o3bo3b3o$o2b2o5b2o2bo!" },
+    { name: "3c/9 engine, 117 cells", code: "xq9_y24a9a4z8866gh1u0u1hg6688z1so26043034062os1zx8biuxuib8zy1lo949olzxce4c666c4ec",
+      status: "known", statusText: "Known, 1 Catagolue soup", speed: "3c/9", period: 9, dy: -3, minpop: 117, bbox: "17 x 29", cut: null, front: "true period-9 engine, no detachable front",
+      rle: "8bo$7b3o$6bo3bo$7b3o$6b5o$6bo3bo$2b3o2bobo2b3o$3bo2b2ob2o2bo$b4o2bobo2b4o$2o5bobo5b2o$3bobobobobobo$3b5ob5o$bo2b2o5b2o2bo$o2bo9bo2bo$b3o9b3o$3b2o7b2o$4bobo3bobo$3bo2b2ob2o2bo$4bob2ob2obo$7bobo$5bo5bo$6bobobo$6b5o$7b3o$5b3ob3o$5b7o$3b2o7b2o2$3bo2bobobo2bo!" },
+    { name: "p3 oscillator, 52 cells", code: "xp3_0gill2w2lligzrq2ug7w7gu2qr",
+      status: "known", statusText: "Known, 21 Catagolue soups (rarest natural object of the run)", speed: "0 (oscillator)", period: 3, dy: 0, minpop: 52, bbox: "14 x 10", cut: null, front: "from a D2_+2 soup, 2.2 billion soups in",
+      rle: "3b2o4b2o$2bo2bo2bo2bo$3b2o4b2o2$b4o4b4o$o4bo2bo4bo$4obo2bob4o$3bobo2bobo$2obo6bob2o$2ob2o4b2ob2o!" }
+  ];
+
+  function parseRLE(s) {
+    const cells = []; let x = 0, y = 0, n = "";
+    for (const ch of s) {
+      if (ch >= "0" && ch <= "9") { n += ch; continue; }
+      const k = n ? parseInt(n, 10) : 1; n = "";
+      if (ch === "b") x += k;
+      else if (ch === "o") { for (let i = 0; i < k; i++) cells.push([x++, y]); }
+      else if (ch === "$") { y += k; x = 0; }
+      else if (ch === "!") break;
+    }
+    return cells;
+  }
+  const OFF = 1 << 15, W = 1 << 16;
+  const key = (x, y) => (x + OFF) * W + (y + OFF);
+  function step(live) {
+    const counts = new Map();
+    for (const k of live) {
+      const x = Math.floor(k / W) - OFF, y = (k % W) - OFF;
+      for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+        if (!dx && !dy) continue;
+        const kk = key(x + dx, y + dy); counts.set(kk, (counts.get(kk) || 0) + 1);
+      }
+    }
+    const next = new Set();
+    for (const [k, c] of counts) if (c === 3 || (c === 2 && live.has(k))) next.add(k);
+    return next;
+  }
+
+  const tok = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  const panels = SHIPS.map((s, i) => {
+    const cells = parseRLE(s.rle);
+    const w = Math.max(...cells.map(c => c[0])) + 1, h = Math.max(...cells.map(c => c[1])) + 1;
+    const m = 4, cs = Math.max(4, Math.min(9, Math.floor(440 / (h + 2 * m))));
+    const el = document.createElement("section"); el.className = "ship";
+    const badge = s.status === "new" ? '<span class="badge new">new</span>' : '<span class="badge known">known</span>';
+    const title = s.nick ? esc(s.nick) : esc(s.name);
+    el.innerHTML = '<h2>' + title + ' ' + badge + '</h2>' +
+      (s.nick ? '<div class="tech label">' + esc(s.name) + '</div>' : '') +
+      '<p class="front">' + esc(s.front) + '</p>' +
+      '<div class="stage"><canvas width="' + (w + 2 * m) * cs + '" height="' + (h + 2 * m) * cs + '" aria-label="' + title + ', running live"></canvas></div>' +
+      '<dl><dt>speed</dt><dd>' + esc(s.speed) + '</dd><dt>period</dt><dd>' + s.period + '</dd><dt>min population</dt><dd>' + s.minpop + '</dd><dt>bounding box</dt><dd>' + esc(s.bbox) +
+      '</dd><dt>catagolue</dt><dd>' + esc(s.statusText) + '</dd><dt>apgcode</dt><dd><code>' + esc(s.code) + '</code></dd></dl>' +
+      '<div class="gen label">generation 0</div>';
+    document.getElementById("ships").appendChild(el);
+    return { s, init: new Set(cells.map(c => key(c[0], c[1]))), live: null, gen: 0, m, cs, canvas: el.querySelector("canvas"), genEl: el.querySelector(".gen") };
+  });
+
+  function draw(p) {
+    const ctx = p.canvas.getContext("2d"), cs = p.cs;
+    ctx.fillStyle = tok("--stage"); ctx.fillRect(0, 0, p.canvas.width, p.canvas.height);
+    const camY = p.gen * (p.s.dy / p.s.period);
+    const eng = tok("--engine"), tail = tok("--tail");
+    for (const k of p.live) {
+      const x = Math.floor(k / W) - OFF, y = (k % W) - OFF;
+      const ry = y - camY;
+      ctx.fillStyle = (p.s.cut !== null && ry >= p.s.cut) ? tail : eng;
+      ctx.fillRect((x + p.m) * cs, (ry + p.m) * cs, cs - 1, cs - 1);
+    }
+    p.genEl.textContent = "generation " + p.gen + "  ·  population " + p.live.size;
+  }
+  function reset(p) { p.live = new Set(p.init); p.gen = 0; draw(p); }
+  function advance(p) { p.live = step(p.live); p.gen++; }
+
+  panels.forEach(reset);
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let playing = !reduced, gps = 8, acc = 0, last = performance.now();
+  const playBtn = document.getElementById("play");
+  playBtn.textContent = playing ? "Pause" : "Play";
+  playBtn.addEventListener("click", () => { playing = !playing; playBtn.textContent = playing ? "Pause" : "Play"; last = performance.now(); });
+  document.getElementById("step").addEventListener("click", () => { panels.forEach(p => { advance(p); draw(p); }); });
+  document.getElementById("reset").addEventListener("click", () => { panels.forEach(reset); });
+  const speed = document.getElementById("speed"), speedVal = document.getElementById("speedval");
+  speed.addEventListener("input", () => { gps = +speed.value; speedVal.textContent = gps; });
+  function frame(t) {
+    if (playing) {
+      acc += (t - last) / 1000 * gps;
+      const n = Math.floor(acc); acc -= n;
+      if (n > 0) panels.forEach(p => { for (let i = 0; i < Math.min(n, 30); i++) advance(p); draw(p); });
+    }
+    last = t; requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  // repaint when the theme changes, even while paused
+  const redraw = () => panels.forEach(draw);
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redraw);
+  new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+})();
+</script>
+</body>
+</html>
