@@ -23,6 +23,8 @@
       background: var(--paper-2); aspect-ratio: 16 / 9;
     }
     #life { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: none; }
+    .window .over { display: inline-block; margin-bottom: 10px; text-decoration: none; }
+    .window .over:hover { color: var(--accent); }
     .window .under { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 12px; }
     .window .under button {
       font: inherit; background: none; border: 0; color: var(--dim); cursor: pointer; padding: 0; margin-left: 14px;
@@ -68,6 +70,7 @@
     </section>
 
     <figure class="window">
+      <a class="over label" href="spaceships/">new spaceships I found in the soup →</a>
       <div class="frame"><canvas id="life" aria-label="Conway's Game of Life. Click or drag to add cells."></canvas></div>
       <figcaption class="under label">
         <span>Conway's life · gen <span id="life-gen">0000</span><span class="hint"> · draw on it</span></span>
