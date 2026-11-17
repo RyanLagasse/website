@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anthropeum · Ryan Lagasse</title>
+  <meta name="description" content="Anthropeum is a daily game about where and when museum objects were made. The study desk I built for it, and how I'm doing.">
+  <script>try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/site.css">
+  <style>
+    .epigraph { margin-top: 64px; padding-left: 18px; border-left: 2px solid var(--rule); }
+    .epigraph blockquote { font-size: 21px; font-style: italic; font-weight: 300; line-height: 1.45; color: var(--sub); }
+    .epigraph figcaption { margin-top: 10px; }
+
+    .head { margin-top: 44px; }
+    .head h1 { font-size: 30px; font-weight: 400; letter-spacing: -0.01em; line-height: 1.15; }
+    .head p { margin-top: 14px; }
+    .head p.soft { color: var(--sub); }
+
+    .tool { margin-top: 40px; border: 1px solid var(--rule); border-radius: 14px; background: var(--paper-2); overflow: hidden; }
+    .tool .viz { display: block; width: 100%; height: 230px; }
+    .tool .viz.map { height: auto; aspect-ratio: 2.55 / 1; }
+    .tool .body { padding: 16px 20px 18px; border-top: 1px solid var(--rule); }
+    .tool h2 { font-size: 22px; font-weight: 400; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .tool h2 a { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: var(--accent); }
+    .tool p { color: var(--sub); margin-top: 6px; font-size: 17px; }
+
+    .rooms { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .rooms a {
+      font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.04em; text-decoration: none; color: var(--sub);
+      border: 1px solid var(--rule); border-radius: 999px; padding: 4px 11px; transition: color .15s, border-color .15s;
+    }
+    .rooms a:hover { color: var(--accent); border-color: var(--accent); }
+
+    .stats { display: flex; flex-wrap: wrap; gap: 6px 28px; margin-top: 14px; }
+    .stats div { display: flex; flex-direction: column; }
+    .stats b { font-weight: 500; font-size: 20px; font-variant-numeric: tabular-nums; }
+    .tiles { display: inline-flex; gap: 3px; margin-top: 4px; }
+    .tiles i { width: 13px; height: 13px; border-radius: 3px; display: inline-block; }
+
+    .back { margin-top: 48px; }
+    .back a { text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="bar">
+    <a class="mark" href="../"><canvas aria-hidden="true"></canvas>Ryan Lagasse</a>
+    <span class="bar-r"><button class="crab-btn" type="button" data-crabs="../assets/crabs/" aria-label="Release the crabs" title="release the crabs"><img src="../assets/crabs/code.gif" width="80" height="80" alt=""></button><button class="theme" type="button" aria-label="Toggle dark mode"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.4 5.4 0 0 1-4.4 2.26 5.4 5.4 0 0 1-3.14-9.8C12.92 3.04 12.46 3 12 3z"/></svg></button></span>
+  </header>
+
+  <figure class="epigraph">
+    <blockquote>Men who love wisdom must be inquirers into very many things indeed.</blockquote>
+    <figcaption class="label">Heraclitus, Fragment 35</figcaption>
+  </figure>
+
+  <div class="head">
+    <h1>Anthropeum</h1>
+    <p><a href="https://www.anthropeum.games/">Anthropeum</a> is a daily game. You see ten objects from the Met and guess where on the map each was made, and in which era, anywhere from 3000 BCE to today.</p>
+    <p class="soft">I got hooked, so I made interactive maps and fun minigames to help me dive deeper into the history and ofc to defeat my brothers at anthropeum</p>
+  </div>
+
+  <section class="tool">
+    <canvas class="viz map" data-viz="map" data-big aria-label="Where the Met's objects come from, one circle per place"></canvas>
+    <div class="body">
+      <h2>The study desk <a href="https://ryanlagasse.github.io/anthropeum-study/">open the desk →</a></h2>
+      <p>I designed this specifically to include nothing from the MET gallery so worry not! you are not training on anthropeums test set unlike most ML researchers. The maps + stats pages pull information from many museums including the MET! I will add more + if you see any issues just <a href="mailto:ryanplagasse@gmail.com">email me</a>! You can practice away with no concerns of spoiling the real game.</p>
+      <div class="rooms">
+        <a href="https://ryanlagasse.github.io/anthropeum-study/#/atlas">atlas</a>
+        <a href="https://ryanlagasse.github.io/anthropeum-study/#/when">when</a>
+        <a href="https://ryanlagasse.github.io/anthropeum-study/#/tells">tells</a>
+        <a href="https://ryanlagasse.github.io/anthropeum-study/#/scripts">scripts</a>
+        <a href="https://ryanlagasse.github.io/anthropeum-study/#/practice">practice</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool">
+    <canvas class="viz" data-viz="scores" data-big aria-label="Every Anthropeum score since August, with a 7-game average"></canvas>
+    <div class="body">
+      <h2>How I'm doing <a href="https://ryanlagasse.github.io/anthropeum/">full dashboard →</a></h2>
+      <p>Every game since <span id="a-since"></span>. Dots are single games, and the line is the 7-game average.</p>
+      <div class="stats">
+        <div><span class="label">latest</span><b id="a-latest"></b><span class="tiles" id="a-tiles"></span></div>
+        <div><span class="label">7-game avg</span><b id="a-avg"></b></div>
+        <div><span class="label">best</span><b id="a-best"></b></div>
+        <div><span class="label">games</span><b id="a-games"></b></div>
+      </div>
+    </div>
+  </section>
+
+  <p class="back label"><a href="../">← home</a></p>
+  <footer class="foot">
+    <span class="label">© 2026 Ryan Lagasse</span>
+    <span class="label">not affiliated with the Met or Anthropeum</span>
+  </footer>
+</div>
+<script src="../assets/patterns.js"></script>
+<script src="../assets/crabs.js"></script>
+<script src="../assets/anthropeum.js"></script>
+</body>
+</html>
